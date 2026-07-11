@@ -25,6 +25,22 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/loiqy/GPT-Live-English-Coach/raw/refs/heads/main/English_Learning_Instructions.md">
+    <img
+      src="https://img.shields.io/badge/下载-最新版%20Instruction-2ea44f?style=for-the-badge&logo=github"
+      alt="下载最新版 Instruction"
+    >
+  </a>
+  &nbsp;
+  <a href="https://github.com/loiqy/GPT-Live-English-Coach/releases/latest">
+    <img
+      src="https://img.shields.io/badge/查看-最新稳定版本-2563eb?style=for-the-badge&logo=github"
+      alt="查看最新稳定版本"
+    >
+  </a>
+</p>
+
+<p align="center">
   <img src="assets/hero-collage.png" width="100%" alt="GPT Live English Coach：面向 ChatGPT Voice 的开源 AI 英语教练与口语陪练方案">
 </p>
 

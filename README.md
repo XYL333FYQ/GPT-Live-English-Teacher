@@ -25,6 +25,22 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/loiqy/GPT-Live-English-Coach/raw/refs/heads/main/English_Learning_Instructions.md">
+    <img
+      src="https://img.shields.io/badge/Download-Latest%20Instruction-2ea44f?style=for-the-badge&logo=github"
+      alt="Download latest instruction"
+    >
+  </a>
+  &nbsp;
+  <a href="https://github.com/loiqy/GPT-Live-English-Coach/releases/latest">
+    <img
+      src="https://img.shields.io/badge/View-Latest%20Release-2563eb?style=for-the-badge&logo=github"
+      alt="View latest release"
+    >
+  </a>
+</p>
+
+<p align="center">
   <img src="assets/hero-collage.png" width="100%" alt="GPT Live English Coach — open-source AI English tutor for ChatGPT Voice and English speaking practice">
 </p>
 
