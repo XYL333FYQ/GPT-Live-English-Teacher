@@ -6,6 +6,7 @@ from copy import deepcopy
 from datetime import date
 import json
 from pathlib import Path
+import sys
 from tempfile import TemporaryDirectory
 import unittest
 
@@ -27,6 +28,9 @@ ROOT = Path(__file__).resolve().parents[1]
 PROFILE_PATH = ROOT / "tests" / "fixtures" / "English_Learning_Profile.example.json"
 LEGACY_PATH = ROOT / "tests" / "fixtures" / "English_Learning_Profile.v2.1.example.json"
 PROFILE_SCHEMA = load_json(ROOT / "schemas" / "learning-profile.schema.json")
+
+sys.path.insert(0, str(ROOT))
+from tests.support import placement_input  # noqa: E402
 
 
 def curricula() -> list[dict]:
@@ -275,6 +279,8 @@ class ProfileTests(unittest.TestCase):
                 "pronunciation_evidence_basis": "not_applicable",
                 "prompt_novelty": "unseen",
                 "text_shown_before_response": False,
+                "skill": "speaking",
+                "listening_check_grade": "not_applicable",
             }
         )
         for knowledge_id, unit_id in (
@@ -309,31 +315,12 @@ class ProfileTests(unittest.TestCase):
         with self.assertRaises(ValidationError) as context:
             validate_profile(profile, curricula(), PROFILE_SCHEMA)
         self.assertTrue(
-            any("does not cover the level's required knowledge" in error for error in context.exception.errors)
+            any("needs a qualifying listening record" in error for error in context.exception.errors)
         )
 
     def test_placement_credit_requires_a_full_listening_and_speaking_exit_check(self) -> None:
         """A complete exit check skips exactly one level and unlocks the next one."""
-        requirements = level_placement_requirements(curricula())["PRE_A1"]
-        placement = {
-            "timezone": "Asia/Shanghai",
-            "target_english_variety": "General_American",
-            "screening_session": {"session_id": "placement_0001", "date": "2026-10-09"},
-            "screening_evidence": [
-                {
-                    "evidence_id": "evidence_placement_0001",
-                    "unit_id": "PRE_A1-U08",
-                    "knowledge_ids": requirements,
-                    "modality": "mixed",
-                    "support_level": "none",
-                    "result": "PASS",
-                    "learner_response_summary": "Passed an unseen integrated Pre-A1 exit check.",
-                    "prompt_novelty": "unseen",
-                    "text_shown_before_response": False,
-                    "listening_check_grade": "strict_unseen",
-                }
-            ],
-        }
+        placement = placement_input(curricula(), ["PRE_A1"])
         profile = init_profile(placement, curricula())
         validate_profile(profile, curricula(), PROFILE_SCHEMA)
         self.assertEqual(profile["current_course_position"]["placement_credited_unit_ids"], ["PRE_A1-U08"])
@@ -341,6 +328,7 @@ class ProfileTests(unittest.TestCase):
         self.assertEqual(profile["learning_track"]["current_level"], "A1")
         self.assertEqual(profile["current_course_position"]["unit_id"], "A1-U01")
         self.assertIn("A1-U01", profile["current_course_position"]["unlocked_unit_ids"])
+        requirements = set(level_placement_requirements(curricula())["PRE_A1"])
         self.assertTrue(
             all(
                 entry["state"] == "placement_credited"

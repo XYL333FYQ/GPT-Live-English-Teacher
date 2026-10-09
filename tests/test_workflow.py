@@ -13,6 +13,7 @@ from copy import deepcopy
 from datetime import date, datetime, timezone
 import json
 from pathlib import Path
+import sys
 from tempfile import TemporaryDirectory
 import unittest
 
@@ -20,16 +21,17 @@ from tools.learning_data import (
     CURRICULUM_LEVELS,
     ValidationError,
     audit_curriculum_prerequisites,
-    exit_unit_by_level,
     export_profile,
     init_profile,
     level_placement_requirements,
     load_json,
     migrate_profile,
     next_export_path,
+    normalize_profile,
     plan_lesson,
     recompute_knowledge_states,
     segment_is_done,
+    select_latest_profile,
     sync_course_position,
     sync_profile,
     unit_completion,
@@ -40,6 +42,10 @@ from tools.learning_data import (
 )
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+
+from tests.support import exit_check_records, placement_input  # noqa: E402
+
 PROFILE_SCHEMA = load_json(ROOT / "schemas" / "learning-profile.schema.json")
 PLACEMENT_FIXTURE = ROOT / "tests" / "fixtures" / "placement.zero-beginner.example.json"
 DAY_1 = date(2026, 10, 8)
@@ -368,7 +374,10 @@ class ScenarioTests(unittest.TestCase):
         with self.assertRaises(ValidationError) as context:
             learner.validate()
         self.assertTrue(
-            any("unseen listening PASS needs hidden novel voice evidence" in error for error in context.exception.errors)
+            any(
+                "must be recorded as practice" in error or "unseen listening PASS" in error
+                for error in context.exception.errors
+            )
         )
 
         # Downgrading the same attempt to ordinary listening practice is accepted.
@@ -391,46 +400,28 @@ class ScenarioTests(unittest.TestCase):
                 "date": DAY_2.isoformat(),
                 "unit_id": "PRE_A1-U08",
                 "objective_id": None,
-                "knowledge_ids": ["PRE_A1-K005", "PRE_A1-K006"],
+                "knowledge_ids": level_placement_requirements(curricula())["PRE_A1"],
                 "phase": "placement",
-                "modality": "voice",
+                "modality": "mixed",
                 "support_level": "none",
                 "result": "PASS",
-                "learner_response_summary": "Answered two greeting questions.",
+                "learner_response_summary": "One integrated record that claims every Pre-A1 item.",
                 "pronunciation_evidence_basis": "not_applicable",
                 "prompt_novelty": "unseen",
                 "text_shown_before_response": False,
+                "listening_check_grade": "strict_unseen",
             }
         )
         learner.profile["current_course_position"]["placement_credited_unit_ids"] = ["PRE_A1-U08", "A1-U08"]
         learner.profile["learning_track"]["placement_basis"] = "independent_level_check"
         with self.assertRaises(ValidationError) as context:
             learner.validate()
-        self.assertTrue(
-            any("does not cover the level's required knowledge" in error for error in context.exception.errors)
-        )
+        errors = context.exception.errors
+        self.assertTrue(any("needs a qualifying listening record" in error for error in errors))
+        self.assertTrue(any("needs a qualifying speaking record" in error for error in errors))
 
-        # A learner can still skip exactly one level with a complete exit check.
-        placement = {
-            "timezone": "Asia/Shanghai",
-            "target_english_variety": "General_American",
-            "screening_session": {"session_id": "placement_0003", "date": DAY_2.isoformat()},
-            "screening_evidence": [
-                {
-                    "evidence_id": "evidence_placement_0003",
-                    "unit_id": "PRE_A1-U08",
-                    "knowledge_ids": level_placement_requirements(curricula())["PRE_A1"],
-                    "modality": "mixed",
-                    "support_level": "none",
-                    "result": "PASS",
-                    "learner_response_summary": "Complete unseen Pre-A1 exit check.",
-                    "prompt_novelty": "unseen",
-                    "text_shown_before_response": False,
-                    "listening_check_grade": "strict_unseen",
-                }
-            ],
-        }
-        promoted = init_profile(placement, curricula())
+        # A learner can still skip exactly one level with a proper two-skill check.
+        promoted = init_profile(placement_input(curricula(), ["PRE_A1"]), curricula())
         validate_profile(promoted, curricula(), PROFILE_SCHEMA)
         self.assertEqual(promoted["current_course_position"]["placement_credited_unit_ids"], ["PRE_A1-U08"])
         self.assertEqual(promoted["current_course_position"]["unit_id"], "A1-U01")
@@ -559,30 +550,7 @@ class ScenarioTests(unittest.TestCase):
 
     def test_four_complete_exit_checks_land_on_b1(self) -> None:
         """A genuinely advanced learner can be credited level by level, not all at once."""
-        requirements = level_placement_requirements(curricula())
-        evidence = []
-        for index, (level, exit_unit) in enumerate(exit_unit_by_level(curricula()).items(), start=1):
-            evidence.append(
-                {
-                    "evidence_id": f"evidence_placement_{index:04d}",
-                    "unit_id": exit_unit,
-                    "knowledge_ids": requirements[level],
-                    "modality": "mixed",
-                    "support_level": "none",
-                    "result": "PASS",
-                    "learner_response_summary": f"{level} integrated exit check.",
-                    "prompt_novelty": "unseen",
-                    "text_shown_before_response": False,
-                    "listening_check_grade": "strict_unseen",
-                }
-            )
-        placement = {
-            "timezone": "Asia/Shanghai",
-            "target_english_variety": "General_American",
-            "screening_session": {"session_id": "placement_0001", "date": DAY_1.isoformat()},
-            "screening_evidence": evidence,
-        }
-        profile = init_profile(placement, curricula())
+        profile = init_profile(placement_input(curricula(), ["PRE_A1", "A1", "A2", "B1"]), curricula())
         validate_profile(profile, curricula(), PROFILE_SCHEMA)
         self.assertEqual(profile["learning_track"]["current_level"], "B1")
         self.assertEqual(profile["current_course_position"]["unit_id"], "B1-U01")

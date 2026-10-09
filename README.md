@@ -27,11 +27,12 @@ The original GPT Live voice lesson, correction, spaced-review, JSON memory, and 
 - Chinese support by default at Pre-A1, reduced as English ability grows;
 - **unit completion = objectives passed + every knowledge item those objectives target independently demonstrated**, which makes "unit complete but next unit locked" impossible to write into a profile;
 - **separate listening and speaking dimensions** per knowledge item: understanding never implies production, and production never implies comprehension at another speed;
-- **multi-lesson units**: letters, numbers, and other heavy items are staged into lesson segments with a per-lesson cap on new material;
-- **strict placement**: skipping a level requires a full exit check covering the level's real requirements across both listening and speaking, otherwise the learner stays `provisional`;
-- **graded listening checks**: an attempt whose text exposure cannot be ruled out is downgraded to practice, never upgraded to a strict check;
+- **multi-lesson units**: letters, numbers, and other heavy items are staged into lesson segments with a per-lesson cap on new material; a weak segment is repaired at that segment, not by repeating the whole unit;
+- **strict placement (hardened in v3.1.1)**: skipping a level requires **one qualifying listening record and one qualifying speaking record**, each covering the level's real requirements. A single integrated record can never prove both;
+- **missing fields are never favourable (v3.1.1)**: an unstated prompt novelty, text exposure, or listening grade is recorded as `unknown` / `null` and credits nothing, so a thin screen can never raise the CEFR level;
+- **graded listening checks**: a strict unseen pass must state `listening_check_grade: strict_unseen` explicitly; an attempt whose text exposure cannot be ruled out is downgraded to practice;
 - strict separation of repetition from independent mastery, and no precise pronunciation claims from speech transcripts;
-- lossless v2.1 migration, non-overwriting export, deterministic `sync`, and automated integrity tests.
+- lossless v2.1 migration, non-overwriting export, deterministic `sync` that may downgrade unverifiable records but never upgrades them, and automated integrity tests.
 
 ## Quick start
 
@@ -47,8 +48,18 @@ The original GPT Live voice lesson, correction, spaced-review, JSON memory, and 
 - `curriculum/A2.json`
 - `curriculum/B1.json`
 - `schemas/learning-profile.schema.json`
+- `tools/learning_data.py` (**optional**, useful only when Text Mode can run code — see below)
 
-For the **first class you upload exactly those six files**. `PROJECT_INSTRUCTIONS.md` goes into Instructions instead of being uploaded. The learner profile is created at the end of the first class and uploaded from the second class onward.
+For the **first class you upload exactly those six required files**. `PROJECT_INSTRUCTIONS.md` goes into Instructions instead of being uploaded. The learner profile is created at the end of the first class and uploaded from the second class onward.
+
+### How the Python tool is actually used
+
+`tools/learning_data.py` is a repository script; it is **not wired into GPT Live**. It runs:
+
+- **inside ChatGPT Text Mode's code sandbox**, when that conversation can execute code — add the file to Project Files and the model can call it for deterministic validation, pre-flight preparation, and export;
+- or on your own machine if you have Python installed, which is optional.
+
+Daily use needs no commands at all: **enter Live → `Class is over, export data.` → download the new profile and upload it next time.** Without code execution the model must validate by hand and tell you that deterministic validation and export did not run, rather than pretending they did.
 
 ### First class
 
@@ -63,7 +74,7 @@ Placement starts with the lowest-demand tasks. It does not ask a zero beginner f
 ### Ordinary class
 
 1. Upload the latest profile JSON.
-2. Send `Prepare for class`.
+2. Send `Prepare for class`. The model picks the newest profile by its own `updated_at` and `profile_revision` — never by filename — and tells you which one it chose.
 3. Read the brief: unit, **lesson segment**, today's goal, new-item cap, due reviews, and any knowledge gap.
 4. Enter GPT Live and run the lesson.
 5. Return to Text Mode and send `Class is over, export data.`
@@ -126,7 +137,9 @@ English_Learning_Instructions.md   # detailed teaching and data rules
 curriculum/{PRE_A1,A1,A2,B1}.json  # PRE_A1 carries lesson_segments
 schemas/{curriculum,learning-profile}.schema.json
 tools/learning_data.py             # validate / audit / init-profile / prepare / plan / export
-tests/                             # 83 tests, including the 15 acceptance scenarios
+tests/                             # 116 tests, including the 15 acceptance scenarios
+  support.py                       # shared two-skill exit-check fixtures
+  test_v311_fixes.py               # evidence-honesty regressions
 docs/manual_acceptance.zh-CN.md    # real GPT Live manual acceptance script
 ```
 
@@ -140,21 +153,22 @@ python tools/learning_data.py audit --json
 python -m unittest discover -s tests -v
 ```
 
-The tests execute the JSON Schemas and cover curriculum references, the full prerequisite audit, the seven-phase flow, hardened cross-level placement, unseen-listening evidence and downgrading, per-dimension skill evidence, multi-lesson pacing, v2.1 migration, the deterministic review queue, pronunciation limits, export revalidation, and all fifteen acceptance scenarios.
+The tests execute the JSON Schemas and cover curriculum references, the full prerequisite audit, the seven-phase flow, hardened cross-level placement, unseen-listening evidence and downgrading, per-dimension skill evidence, multi-lesson pacing, v2.1 migration, the deterministic review queue, pronunciation limits, export revalidation, all fifteen acceptance scenarios, and the v3.1.1 evidence-honesty regressions (missing fields are never optimistic, one record cannot prove two skills, remediation targets the segment that taught the gap, the newest profile is chosen by metadata, and the instruction documents agree with each other).
 
 ## Limitations
 
 - This is not an official CEFR, IELTS, or pronunciation assessment.
 - GPT Live, file tools, and voice behavior may change with ChatGPT.
-- The repository's Python tools are **not** wired into GPT Live. They only run when Text Mode can execute code; without it, validation and export must be done by hand and reported as such.
+- The repository's Python tools are **not** wired into GPT Live. They only run when Text Mode can execute code; without it, validation and export must be done by hand and reported as such. Everyday use needs no commands.
 - Project Instructions cannot force file reads and cannot verify that a file was opened.
 - No audio is stored and no acoustic analysis is performed.
 - B1 current-topic work depends on web search; Pre-A1 and A1 do not depend on news discussion.
 - Automated tests cover the data layer only. Real GPT Live behaviour must be verified with `docs/manual_acceptance.zh-CN.md`.
+- v3.1.1 tightened the rules: profiles that previously passed on missing fields are **downgraded** on the next `Prepare for class` or export (an unverifiable listening pass becomes practice, an unverifiable level skip is withdrawn). That is intentional, not a bug.
 
 ## Version and license
 
-- Instruction: **v3.1.0**
+- Instruction: **v3.1.1**
 - Profile schema: **3.0**
 - Curriculum: **1.1.0** (1.0.0 profiles still validate)
 - Instructions, curriculum, documentation, schemas, and example profile use CC BY 4.0 under `LICENSE`, inherited from `loiqy/GPT-Live-English-Coach`.

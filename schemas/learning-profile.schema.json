@@ -164,6 +164,7 @@
         "text_shown_before_response": {"type": ["boolean", "null"]},
         "skill": {"enum": ["listening", "speaking"]},
         "listening_check_grade": {"enum": ["strict_unseen", "text_supported_practice", "unknown", "not_applicable"]},
+        "screening_verification": {"enum": ["strict_independent", "practice_only", "unverified_conditions", "failed"]},
         "notes": {"type": "string"}
       }
     }

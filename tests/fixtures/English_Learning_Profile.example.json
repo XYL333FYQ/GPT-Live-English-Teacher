@@ -137,7 +137,9 @@
       "learner_response_summary": "在无文字情况下正确执行三条新的单步指令。",
       "pronunciation_evidence_basis": "not_applicable",
       "prompt_novelty": "unseen",
-      "text_shown_before_response": false
+      "text_shown_before_response": false,
+      "skill": "listening",
+      "listening_check_grade": "strict_unseen"
     },
     {
       "evidence_id": "evidence_0002",

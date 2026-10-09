@@ -30,9 +30,11 @@
 - 跟读与独立掌握严格分离；
 - **单元完成 = 目标通过 + 该目标覆盖的每个知识点独立**，因此「上一单元已完成、下一单元却打不开」的死锁不再可能；
 - **听力与口语分维度记录**：听懂不等于会说，会说也不等于能在不同语速下听懂；
-- **单元可跨多节课**：Pre-A1 的字母、数字等按课次分段推进，每节课新内容有上限；
-- **严格分级**：跳级必须覆盖该等级出口单元的全部要求且同时包含听说，否则保持 `provisional`；
-- **听力测试分级**：无法确认是否看到文字时不得声称严格通过纯听力测试；
+- **单元可跨多节课**：Pre-A1 的字母、数字等按课次分段推进，每节课新内容有上限；某个课次没掌握时，下一节课回到**那个课次**补救，而不是重上整个单元；
+- **严格分级（v3.1.1 加固）**：跳级必须同时有**一条合格的听力记录和一条合格的口语记录**，分别覆盖该等级的全部要求；一条综合记录不再能同时充当听说两项；
+- **缺字段不再自动变有利（v3.1.1 修复）**：没写「题目是否见过」「是否提前看到文字」「听力测试等级」时，一律记为 `unknown`/`null`，不能算通过，也不能因此提高分级；
+- **严格听力测试必须显式标注** `listening_check_grade: strict_unseen`，缺这个字段就不算严格通过；
+- 无法确认是否看到文字时不得声称严格通过纯听力测试，只能降级为普通听力练习；
 - 禁止根据语音转写文本给出精确发音评分；
 - v2.1 档案无损迁移、非覆盖导出、确定性同步与自动化校验。
 
@@ -50,8 +52,18 @@
 - `curriculum/A2.json`
 - `curriculum/B1.json`
 - `schemas/learning-profile.schema.json`
+- `tools/learning_data.py`（**可选**：只有在文本模式可以执行代码时才有用，见下）
 
-**第一节课只需要上传上面的 6 个文件**；`PROJECT_INSTRUCTIONS.md` 复制到 Instructions，不必重复上传。学习者档案由第一节课结束后生成，之后每节课再上传。
+**第一节课只需要上传上面的 6 个必选文件**；`PROJECT_INSTRUCTIONS.md` 复制到 Instructions，不必重复上传。学习者档案由第一节课结束后生成，之后每节课再上传。
+
+### Python 工具到底怎么用（重要）
+
+`tools/learning_data.py` 只是**仓库里的脚本**，它**不会自动连到 GPT Live**。它的作用是：
+
+- **在 ChatGPT 文本模式的代码沙箱里运行**（前提是该对话能执行代码）。把 `tools/learning_data.py` 一起放进 Project Files，模型就能在文本模式里调用它做确定性校验、课前准备和课后导出。
+- 也可以在你自己电脑上运行（需要装 Python），但**不是必须**——日常流程不需要你手动跑任何命令。
+
+日常操作只需要三步：**进 Live 上课 → 课后说 `Class is over, export data.` → 下载新档案，下节课上传**。没有代码执行能力时，模型必须改用人工校验，并明确告诉你「确定性校验/导出没有执行」，而不是假装成功。
 
 ### 2. 第一节课
 
@@ -66,7 +78,7 @@
 ### 3. 普通课程
 
 1. 在 Project 对话中上传最新的 profile JSON。
-2. 发送：`Prepare for class`。
+2. 发送：`Prepare for class`。模型会**按档案自己的 `updated_at` 和 `profile_revision` 判断哪个最新**，并告诉你它选了哪一个——不会只凭文件名猜。
 3. 查看课前简报（单元、**课次**、今日目标、新内容上限、复习项、是否有知识缺口）。
 4. 进入 GPT Live 上课。
 5. 结束时回到文本模式，发送：`Class is over, export data.`
@@ -149,11 +161,13 @@ schemas/
 tools/
   learning_data.py               # validate / audit / init-profile / prepare / plan / export
 tests/
+  support.py                     # 听说两条合格证据的共用构造
   fixtures/
   test_curriculum.py
   test_memory_engine.py
   test_profile.py
   test_workflow.py               # 15 个验收场景
+  test_v311_fixes.py             # v3.1.1 证据真实性回归
 docs/
   manual_acceptance.zh-CN.md     # 真实 GPT Live 人工验收脚本
 ```
@@ -168,21 +182,26 @@ python tools/learning_data.py audit --json
 python -m unittest discover -s tests -v
 ```
 
-测试覆盖 JSON Schema 实际执行、课程顺序与引用、**完整前置依赖审计**、七阶段流程、跨级 placement 加固、未见听力证据与降级、**听说分维度证据**、单元多课次与节奏控制、v2.1 迁移、确定性复习队列、发音边界、导出回读，以及 15 个端到端验收场景。
+测试覆盖 JSON Schema 实际执行、课程顺序与引用、**完整前置依赖审计**、七阶段流程、跨级 placement 加固、未见听力证据与降级、**听说分维度证据**、单元多课次与节奏控制、v2.1 迁移、确定性复习队列、发音边界、导出回读、15 个端到端验收场景，以及 v3.1.1 的**证据真实性回归**（缺字段不乐观、单条记录不能充当听说两项、课次补救定位、最新档案按元数据选择、指令文档一致性）。
+
+```bash
+python tools/learning_data.py prepare --profile-dir /mnt/data --date YYYY-MM-DD   # 按元数据自动挑最新档案
+```
 
 ## 限制（请如实告知使用者）
 
 - 这是教学工作流，不是官方 CEFR、IELTS 或发音测评工具。
 - GPT Live、文件工具和语音可用性可能随 ChatGPT 产品变化。
-- **仓库中的 Python 脚本不会自动被 GPT Live 调用**：只有在文本模式具备代码执行能力时才会运行。没有代码执行时，必须手工校验并如实说明。
+- **仓库中的 Python 脚本不会自动被 GPT Live 调用**：只有在文本模式具备代码执行能力时才会运行。没有代码执行时，必须手工校验并如实说明。日常使用不需要你自己跑命令。
 - Project Instructions 无法强制模型读取文件，也无法验证文件是否真的被打开。
 - 本仓库不存储音频，也不进行声学分析。
 - B1 现实话题受网页搜索可用性影响；Pre-A1/A1 不依赖新闻讨论。
 - 自动化测试只验证数据层；真实 GPT Live 行为需按 `docs/manual_acceptance.zh-CN.md` 人工验收。
+- v3.1.1 收紧了规则：以前靠缺失字段「自动算通过」的旧档案，会在下次 `Prepare for class` 或导出时被**降级**（不合格的听力通过降为练习、无法验证的跳级撤回）。这是有意的，不是 bug。
 
 ## 版本与许可
 
-- Instruction：**v3.1.0**
+- Instruction：**v3.1.1**
 - Profile schema：**3.0**
 - Curriculum：**1.1.0**（1.0.0 档案仍可校验）
 - Instruction、课程、文档、schema 与示例档案采用 `LICENSE` 中的 CC BY 4.0（源自 `loiqy/GPT-Live-English-Coach`）。

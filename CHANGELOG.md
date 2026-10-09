@@ -1,5 +1,33 @@
 # Changelog
 
+## v3.1.1 — Evidence honesty and segment-level repair
+
+### Fixed (P0)
+
+- **`init_profile` invented favourable screening conditions.** Missing `prompt_novelty` was filled with `unseen` and missing `text_shown_before_response` with `false`, so an incomplete screening record could silently credit a whole level and raise the CEFR label. Missing fields are now recorded as `unknown` / `null`, the listening grade is never inferred (not even from otherwise strict-looking fields), and such a record credits nothing. Reproduced: a record with no conditions and every Pre-A1 knowledge id used to credit `PRE_A1-U08` and promote the learner to A1; it now stays `provisional` at `PRE_A1`.
+- **A single placement record could satisfy both skill dimensions.** Coverage was inferred from which knowledge ids a record listed, so one `PASS` record with `modality: mixed` and a long id list skipped a level. Placement credit now requires an explicit `skill` on every record, **one qualifying listening record and one qualifying speaking record**, and per-knowledge dimension coverage: each required item must be covered by a record of the dimension that item actually needs.
+- **`evidence_is_unseen_listening` accepted records with no `listening_check_grade`.** A record that never declared its conditions counted as a strict unseen pass. The grade must now be explicitly `strict_unseen`, together with `result: PASS`, `prompt_novelty: unseen`, `text_shown_before_response: false`, voice/mixed modality, and no answer-revealing support.
+- `evidence_skill_dimensions` no longer infers a dimension from the knowledge classification — that inference was the root cause of the second defect.
+
+### Fixed (P1)
+
+- **Multi-lesson remediation targeted the wrong segment.** With all four segments of `PRE_A1-U03` taught and `PRE_A1-K009` unmastered, the plan repeated the *last* segment (S4) instead of returning to the segment that taught the letters. `plan_lesson` now locates taught-but-unmastered knowledge, maps it to the segment that taught it, and reports `remedial_knowledge_ids`, `target_segment_ids`, and a per-item `segment_id` in the remediation plan. Segment markers still never raise a knowledge state or complete a unit, and already-independent items are left untouched.
+- **The newest profile was chosen by filename.** `select_latest_profile` now ranks every candidate by its own `updated_at` then `profile_revision`, reports the full ranking (including files that are not profiles), and `prepare --profile-dir` uses it.
+
+### Added
+
+- `normalize_profile` as the single entry point for derived-state repair: demote unverifiable listening passes to practice, withdraw placement credit the strict rules cannot confirm, rebuild knowledge states from evidence, recompute the course position. It records every downgrade in `migration_history`, never upgrades a record, and never deletes history.
+- `screening_verification` on screening evidence (`strict_independent` / `practice_only` / `unverified_conditions` / `failed`), validated against what the record actually proves.
+- `level_placement_evidence_gaps` for per-dimension placement diagnostics, and `knowledge_segment_map` / `taught_knowledge_ids` / `segment_is_done` as public helpers.
+- `tests/support.py` with two-skill exit-check fixtures, and `tests/test_v311_fixes.py` with 32 regressions covering every scenario in the v3.1.1 brief, including document consistency between `PROJECT_INSTRUCTIONS.md`, the teaching instructions and both READMEs.
+- the repository layout now lists `tools/learning_data.py` as an optional Project File so Text Mode can run the deterministic checks in its code sandbox.
+
+### Changed
+
+- legacy profiles carrying the old, looser credit are **downgraded** on the next `prepare` or `export`, not upgraded. A learner who was promoted by a thin screen returns to a genuinely unlocked unit and re-earns the gap.
+- a `strict_unseen` grade describes the test *conditions*, so a failed strict check is a valid record (it simply does not count as a pass).
+- test count 84 → 116.
+
 ## v3.1.0 — Consistency, skill separation, and multi-lesson units
 
 ### Fixed (P0)

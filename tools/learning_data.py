@@ -682,6 +682,12 @@ def evidence_is_independent(evidence: dict[str, Any]) -> bool:
 
 
 def evidence_is_placement_credit(evidence: dict[str, Any]) -> bool:
+    """Formally valid placement evidence for one skill dimension.
+
+    `skill` must be explicit. The dimension is never inferred from which knowledge
+    ids the record happens to list, because listing a knowledge id proves nothing
+    about whether the learner actually listened to or spoke it.
+    """
     return (
         evidence.get("phase") == "placement"
         and evidence.get("objective_id") is None
@@ -690,25 +696,41 @@ def evidence_is_placement_credit(evidence: dict[str, Any]) -> bool:
         and evidence.get("prompt_novelty") == "unseen"
         and evidence.get("modality") in {"voice", "mixed"}
         and evidence.get("text_shown_before_response") is False
+        and evidence.get("skill") in SKILL_DIMENSIONS
         and bool(evidence.get("knowledge_ids"))
     )
 
 
-def evidence_is_unseen_listening(evidence: dict[str, Any]) -> bool:
-    """Strict unseen-listening evidence.
+def placement_evidence_skill(evidence: dict[str, Any]) -> str | None:
+    """Explicit skill dimension of a placement record, or None when unverifiable."""
+    skill = evidence.get("skill")
+    return skill if skill in SKILL_DIMENSIONS else None
 
-    A recording that cannot prove the text was hidden is never accepted, and a
-    graded `text_supported_practice` attempt is downgraded to ordinary listening
-    practice instead of being upgraded to a strict check.
+
+def evidence_is_strict_unseen_listening(evidence: dict[str, Any]) -> bool:
+    """Every condition a strict unseen listening check must satisfy.
+
+    The grade must be *explicitly* `strict_unseen`. A record that simply omits the
+    field is unverified, not strict, and can never be upgraded by default.
     """
-    if evidence.get("listening_check_grade") in {"text_supported_practice", "unknown"}:
-        return False
     return (
-        evidence_is_independent(evidence)
-        and evidence.get("modality") in {"voice", "mixed"}
+        evidence.get("listening_check_grade") == "strict_unseen"
+        and evidence.get("result") == "PASS"
         and evidence.get("prompt_novelty") == "unseen"
         and evidence.get("text_shown_before_response") is False
+        and evidence.get("modality") in {"voice", "mixed"}
+        and evidence.get("support_level") in INDEPENDENT_SUPPORT
     )
+
+
+def evidence_is_unseen_listening(evidence: dict[str, Any]) -> bool:
+    """Strict unseen listening during a lesson phase.
+
+    A recording that cannot prove the text was hidden is never accepted, and a
+    `text_supported_practice` or `unknown` attempt is ordinary listening practice
+    instead of a strict check.
+    """
+    return evidence_is_strict_unseen_listening(evidence) and evidence.get("phase") in INDEPENDENT_PHASES
 
 
 def pronunciation_claim_allowed(evidence_basis: str, claim_type: str) -> bool:
@@ -742,7 +764,13 @@ def evidence_skill_dimensions(
     knowledge_id: str | None,
     curricula: Sequence[dict[str, Any]] | None,
 ) -> tuple[str, ...]:
-    """Which skill dimensions one evidence record demonstrates for a knowledge item."""
+    """Which skill dimensions one evidence record actually demonstrates.
+
+    The dimension comes from the record's explicit `skill`, or from the mode of the
+    objective it belongs to. It is deliberately **not** inferred from which
+    knowledge ids the record lists: a knowledge item being taught as listening or
+    speaking material says nothing about what the learner really did.
+    """
     explicit = evidence.get("skill")
     if explicit in SKILL_DIMENSIONS:
         return (explicit,)
@@ -753,10 +781,6 @@ def evidence_skill_dimensions(
                 for objective in unit["objectives"]:
                     if objective["objective_id"] == objective_id:
                         return (MODE_TO_SKILL[objective["mode"]],)
-    if knowledge_id and curricula:
-        required = knowledge_required_dimensions(knowledge_id, curricula)
-        if required:
-            return tuple(sorted(required))
     return ()
 
 
@@ -998,23 +1022,78 @@ def unlocked_unit_ids(profile: dict[str, Any], curricula: Sequence[dict[str, Any
     return unlocked
 
 
+def knowledge_segment_map(unit: dict[str, Any]) -> dict[str, str]:
+    """First lesson segment that teaches each knowledge item of a unit."""
+    mapping: dict[str, str] = {}
+    for segment in unit_lesson_segments(unit):
+        for knowledge_id in segment["knowledge_ids"]:
+            mapping.setdefault(knowledge_id, segment["segment_id"])
+    return mapping
+
+
+def taught_knowledge_ids(profile: dict[str, Any], unit: dict[str, Any]) -> set[str]:
+    """Knowledge of a unit that the coach has already taught or attempted.
+
+    A knowledge item counts as taught when **any** of these holds:
+
+    - it appears in any recorded evidence of this unit (it was exercised);
+    - its state is beyond `not_started` (demonstrated or practised with support);
+    - one of the objectives that target it already meets its independent minimum,
+      so the check ran and the learner simply did not demonstrate this item.
+
+    Being taught is never a mastery claim. It only decides *what to remediate*
+    instead of treating it as brand-new material. Knowledge with no evidence at all
+    is ordinary new content, not a gap.
+    """
+    requirements = unit_knowledge_requirements(unit)
+    taught: set[str] = set()
+
+    for entry in profile.get("practice_evidence", []):
+        if entry.get("unit_id") != unit["unit_id"]:
+            continue
+        if entry.get("result") == "UNTESTED":
+            # An untested item proves nothing, so it is not evidence of teaching.
+            continue
+        taught.update(set(entry.get("knowledge_ids", [])) & set(requirements))
+
+    states = {entry.get("knowledge_id"): entry.get("state") for entry in profile.get("knowledge_state", [])}
+    for knowledge_id in requirements:
+        if states.get(knowledge_id) not in {None, "not_started"}:
+            taught.add(knowledge_id)
+
+    required = unit["completion_criteria"]["minimum_independent_passes_per_objective"]
+    for objective_id in unit["completion_criteria"]["required_objective_ids"]:
+        objective = unit_objectives(unit)[objective_id]
+        if len(_objective_passes(profile, unit, objective)) < required:
+            continue
+        taught.update(set(objective["target_knowledge_ids"]) & set(requirements))
+
+    return taught
+
+
 def remediation_entries(
-    profile: dict[str, Any], curricula: Sequence[dict[str, Any]], knowledge_ids: Sequence[str]
+    profile: dict[str, Any],
+    curricula: Sequence[dict[str, Any]],
+    knowledge_ids: Sequence[str],
+    segment_map: dict[str, str] | None = None,
 ) -> list[dict[str, Any]]:
     """Concrete re-teach + independent-check plan for missing knowledge."""
     _units, _objectives, knowledge, _levels, _owner = _curriculum_indexes(curricula)
     states = {entry.get("knowledge_id"): entry for entry in profile.get("knowledge_state", [])}
+    segment_map = segment_map or {}
     entries: list[dict[str, Any]] = []
     for knowledge_id in knowledge_ids:
         owner, entry = knowledge.get(knowledge_id, (None, None))
         entries.append(
             {
                 "knowledge_id": knowledge_id,
+                "segment_id": segment_map.get(knowledge_id),
                 "owner_unit_id": owner,
                 "form": entry["form"] if entry else None,
                 "meaning_zh": entry["meaning_zh"] if entry else None,
                 "required_dimensions": sorted(knowledge_required_dimensions(knowledge_id, curricula)),
                 "current_state": states.get(knowledge_id, {}).get("state", "not_started"),
+                "skill_states": dict(states.get(knowledge_id, {}).get("skill_states", {})),
                 "action": "reteach_then_independent_check",
                 "evidence_required": (
                     "phase independent_expression/check, prompt_novelty unseen, "
@@ -1063,12 +1142,16 @@ def unlock_blockers(
         )
 
     stale_owners: list[str] = []
+    segment_map: dict[str, str] = {}
     for knowledge_id in missing_knowledge:
         owner = _owner.get(knowledge_id)
         if owner in satisfied and owner not in stale_owners:
             # The owner unit is already treated as done, yet this prerequisite is
             # not independent. That is exactly the P0 deadlock shape.
             stale_owners.append(owner)
+        if owner in units:
+            for item, segment_id in knowledge_segment_map(units[owner]).items():
+                segment_map.setdefault(item, segment_id)
 
     return {
         "unit_id": unit["unit_id"],
@@ -1076,7 +1159,7 @@ def unlock_blockers(
         "missing_prerequisite_units": missing_units,
         "missing_prerequisite_knowledge": missing_knowledge,
         "prerequisite_gaps": prerequisite_gaps,
-        "remediation_plan": remediation_entries(profile, curricula, missing_knowledge),
+        "remediation_plan": remediation_entries(profile, curricula, missing_knowledge, segment_map),
         "stale_owner_units": stale_owners,
         "deadlock_risk": bool(stale_owners),
     }
@@ -1325,12 +1408,115 @@ def sync_course_position(
     return profile
 
 
-def sync_profile(
+def unverified_listening_records(
+    profile: dict[str, Any], curricula: Sequence[dict[str, Any]]
+) -> list[dict[str, Any]]:
+    """PASS records on an unseen-listening objective that cannot prove the conditions.
+
+    These are historical claims recorded before `listening_check_grade` existed, or
+    claims whose text exposure is unknown. They are never upgraded; they are
+    downgraded to ordinary listening practice.
+    """
+    units, objectives, _knowledge, _levels, _owner = _curriculum_indexes(curricula)
+    flagged: list[dict[str, Any]] = []
+    for entry in profile.get("practice_evidence", []):
+        if entry.get("result") != "PASS":
+            continue
+        objective_id = entry.get("objective_id")
+        if not objective_id or objective_id not in objectives:
+            continue
+        _unit_id, objective = objectives[objective_id]
+        if "unseen_audio" not in objective["evidence_requirement"]:
+            continue
+        if evidence_is_unseen_listening(entry):
+            continue
+        flagged.append(entry)
+    return flagged
+
+
+def downgrade_unverified_listening_evidence(
+    profile: dict[str, Any], curricula: Sequence[dict[str, Any]]
+) -> list[str]:
+    """Demote unverifiable listening passes to practice and return what changed.
+
+    Nothing is upgraded and no history is deleted: the attempt keeps its id, date
+    and response summary, but it stops counting as a strict unseen check.
+    """
+    changed: list[str] = []
+    for entry in unverified_listening_records(profile, curricula):
+        notes = str(entry.get("notes", "")).strip()
+        entry["listening_check_grade"] = (
+            "text_supported_practice"
+            if entry.get("text_shown_before_response") is True
+            else "unknown"
+        )
+        if entry.get("phase") in INDEPENDENT_PHASES:
+            entry["phase"] = "guided_practice"
+        entry["notes"] = (
+            f"{notes} | v3.1.1: downgraded to listening practice - the strict check "
+            "conditions were never verified (re-run the check to earn credit)."
+        ).strip(" |")
+        changed.append(entry["evidence_id"])
+    return changed
+
+
+def downgrade_unverified_placement_credit(
+    profile: dict[str, Any], curricula: Sequence[dict[str, Any]]
+) -> list[str]:
+    """Drop placement credit that the strict per-skill rules cannot confirm."""
+    position = profile.setdefault("current_course_position", {})
+    credited = list(position.get("placement_credited_unit_ids", []))
+    if not credited:
+        return []
+    gaps = level_placement_evidence_gaps(profile, curricula)
+    removed = [unit_id for unit_id in credited if unit_id in gaps]
+    if not removed:
+        return []
+    position["placement_credited_unit_ids"] = [unit_id for unit_id in credited if unit_id not in removed]
+    if not position["placement_credited_unit_ids"] and profile.get("learning_track", {}).get(
+        "placement_basis"
+    ) == "independent_level_check":
+        profile["learning_track"]["placement_basis"] = "initial_screening"
+    profile.setdefault("migration_history", []).append(
+        {
+            "from_version": "3.1.0",
+            "to_version": "3.1.1",
+            "reason": "placement credit could not be verified as a separate listening and speaking check",
+            "removed_placement_credit": removed,
+        }
+    )
+    return removed
+
+
+def normalize_profile(
     profile: dict[str, Any], curricula: Sequence[dict[str, Any]], advance: bool = True
 ) -> dict[str, Any]:
+    """Bring a profile to the current rules without ever inventing evidence.
+
+    Steps, in order: demote unverifiable listening passes to practice, drop
+    placement credit the strict rules cannot confirm, rebuild every derived
+    knowledge state from evidence, then recompute the course position.
+    """
+    downgraded_listening = downgrade_unverified_listening_evidence(profile, curricula)
+    if downgraded_listening:
+        profile.setdefault("migration_history", []).append(
+            {
+                "from_version": "3.1.0",
+                "to_version": "3.1.1",
+                "reason": "unverified listening passes were downgraded to practice",
+                "downgraded_evidence_ids": downgraded_listening,
+            }
+        )
+    downgrade_unverified_placement_credit(profile, curricula)
     recompute_knowledge_states(profile, curricula)
     sync_course_position(profile, curricula, advance=advance)
     return profile
+
+
+def sync_profile(
+    profile: dict[str, Any], curricula: Sequence[dict[str, Any]], advance: bool = True
+) -> dict[str, Any]:
+    return normalize_profile(profile, curricula, advance=advance)
 
 
 # ---------------------------------------------------------------------------
@@ -1475,10 +1661,29 @@ def plan_lesson(
     )
     segments = unit_lesson_segments(unit)
     qualified = qualified_knowledge_ids(profile)
-    current_segment = next(
-        (segment for segment in segments if not segment_is_done(profile, unit, segment)),
-        segments[-1],
+    segment_map = knowledge_segment_map(unit)
+    marked_segments = set(position.get("completed_lesson_segment_ids", []))
+    taught = taught_knowledge_ids(profile, unit)
+
+    # Knowledge that was already taught but is still not independent must be
+    # repaired, and repaired where it was originally taught - not by repeating the
+    # last segment of the unit and not by redoing the whole unit.
+    remedial_knowledge = [knowledge_id for knowledge_id in missing_knowledge if knowledge_id in taught]
+    remedial_segments = sorted(
+        {segment_map[knowledge_id] for knowledge_id in remedial_knowledge if knowledge_id in segment_map},
+        key=lambda segment_id: [s["segment_id"] for s in segments].index(segment_id),
     )
+    pending_knowledge = [k for k in missing_knowledge if k not in taught]
+
+    if remedial_knowledge:
+        current_segment = next(
+            segment for segment in segments if segment["segment_id"] in set(remedial_segments)
+        )
+    else:
+        current_segment = next(
+            (segment for segment in segments if not segment_is_done(profile, unit, segment)),
+            segments[-1],
+        )
 
     max_new = min(level_limit, int(current_segment.get("max_new_items", level_limit)))
     if pace == "slower":
@@ -1489,7 +1694,7 @@ def plan_lesson(
     new_knowledge_ids = [
         knowledge_id
         for knowledge_id in current_segment["knowledge_ids"]
-        if knowledge_id not in qualified
+        if knowledge_id not in qualified and knowledge_id not in set(remedial_knowledge)
     ][:max_new]
 
     due_items, _working = prepare_review_queue(profile.get("active_repertoire", []), today)
@@ -1498,17 +1703,19 @@ def plan_lesson(
 
     next_unit = next((candidate for candidate in ordered if candidate in unlocked and candidate not in satisfied), None)
 
-    # Remediation is required when the unit's objectives are checked but the
-    # knowledge underneath them is still not independent, or when a prerequisite
-    # gap exists. Either way the coach reteaches and re-checks before moving on.
+    # Remediation is required for prerequisite gaps and for knowledge that has been
+    # taught but is still not independent. Knowledge that was never taught is
+    # ordinary new content, not remediation.
     remediation = list(blockers["remediation_plan"])
-    if missing_knowledge and not missing_objectives:
-        already = {entry["knowledge_id"] for entry in remediation}
-        remediation.extend(
-            remediation_entries(
-                profile, curricula, [k for k in missing_knowledge if k not in already]
-            )
+    already = {entry["knowledge_id"] for entry in remediation}
+    remediation.extend(
+        remediation_entries(
+            profile,
+            curricula,
+            [k for k in remedial_knowledge if k not in already],
+            segment_map,
         )
+    )
 
     if pace == "paused":
         next_action = "paused"
@@ -1526,6 +1733,14 @@ def plan_lesson(
         notes.append(f"请求的单元 {redirect} 尚未解锁，已改为当前可解锁单元 {requested}。")
     if remediation:
         notes.append("存在知识缺口，必须先做补充教学与独立检验，再进入新内容。")
+    if remedial_knowledge:
+        notes.append(
+            "已教过但未独立掌握："
+            + "、".join(remedial_knowledge)
+            + "（回到原课次 "
+            + "、".join(remedial_segments)
+            + " 补救，不必重上整个单元）"
+        )
     if pace == "slower":
         notes.append("学习者要求放慢：本课最多引入 1 个新知识点。")
     if pace == "faster":
@@ -1544,6 +1759,10 @@ def plan_lesson(
         "unit_complete": complete,
         "missing_objective_ids": missing_objectives,
         "missing_knowledge_ids": missing_knowledge,
+        "remedial_knowledge_ids": remedial_knowledge,
+        "target_segment_ids": remedial_segments,
+        "pending_knowledge_ids": pending_knowledge,
+        "taught_knowledge_ids": sorted(taught),
         "segment": {
             "segment_id": current_segment["segment_id"],
             "focus_zh": current_segment["focus_zh"],
@@ -1551,6 +1770,7 @@ def plan_lesson(
             "target_objective_ids": list(current_segment.get("target_objective_ids", [])),
             "max_new_items": int(current_segment.get("max_new_items", level_limit)),
             "auto_generated": bool(current_segment.get("auto_generated", False)),
+            "marked_taught": current_segment["segment_id"] in marked_segments,
         },
         "segment_index": segments.index(current_segment) + 1,
         "segment_total": len(segments),
@@ -1604,57 +1824,103 @@ def _pronunciation_numeric_paths(value: Any, path: str = "$", in_pronunciation: 
     return paths
 
 
-def placement_credit_errors(profile: dict[str, Any], curricula: Sequence[dict[str, Any]]) -> list[str]:
-    """A level may only be skipped when the exit check covers the real requirements.
+def level_placement_evidence_gaps(
+    profile: dict[str, Any], curricula: Sequence[dict[str, Any]]
+) -> dict[str, list[str]]:
+    """Per-dimension gaps for every claimed placement credit.
 
-    One formally valid integrated record is not enough: the credited knowledge
-    must cover the exit unit's required knowledge and must span both listening and
-    speaking. Otherwise the learner stays provisional at the lower unit.
+    A level may only be skipped when there is a qualifying **listening** record and
+    a qualifying **speaking** record, and every knowledge item the level exit
+    requires is covered by a record of each dimension that item actually needs.
     """
-    errors: list[str] = []
+    units, _objectives, _knowledge, _levels, _owner = _curriculum_indexes(curricula)
+    exit_units = exit_unit_by_level(curricula)
+    level_requirements = level_placement_requirements(curricula)
+    unit_level = {unit_id: level for level, unit_id in exit_units.items()}
+    position = profile.get("current_course_position", {})
+    gaps: dict[str, list[str]] = {}
+
+    for unit_id in sorted(set(position.get("placement_credited_unit_ids", []))):
+        if unit_id not in units:
+            continue
+        level = unit_level.get(unit_id)
+        if level is None:
+            gaps[unit_id] = [f"{unit_id}: only a level-exit unit may receive placement credit"]
+            continue
+        problems: list[str] = []
+        records = [
+            entry
+            for entry in profile.get("practice_evidence", [])
+            if entry.get("unit_id") == unit_id and entry.get("phase") == "placement"
+        ]
+        listening_records = [
+            entry
+            for entry in records
+            if placement_evidence_skill(entry) == "listening" and evidence_is_strict_unseen_listening(entry)
+        ]
+        speaking_records = [
+            entry
+            for entry in records
+            if placement_evidence_skill(entry) == "speaking" and evidence_is_placement_credit(entry)
+        ]
+        if not listening_records:
+            problems.append(
+                f"{unit_id}: placement credit needs a qualifying listening record "
+                "(skill listening, PASS, unseen, text hidden, listening_check_grade strict_unseen)"
+            )
+        if not speaking_records:
+            problems.append(
+                f"{unit_id}: placement credit needs a qualifying speaking record "
+                "(skill speaking, PASS, unseen, text hidden, no revealing support)"
+            )
+        listening_covered = {k for entry in listening_records for k in entry.get("knowledge_ids", [])}
+        speaking_covered = {k for entry in speaking_records for k in entry.get("knowledge_ids", [])}
+        for knowledge_id in level_requirements.get(level, unit_knowledge_requirements(units[unit_id])):
+            required = knowledge_required_dimensions(knowledge_id, curricula)
+            if "listening" in required and knowledge_id not in listening_covered:
+                problems.append(
+                    f"{unit_id}: listening evidence does not cover required knowledge {knowledge_id}"
+                )
+            if "speaking" in required and knowledge_id not in speaking_covered:
+                problems.append(
+                    f"{unit_id}: speaking evidence does not cover required knowledge {knowledge_id}"
+                )
+        if problems:
+            gaps[unit_id] = problems
+    return gaps
+
+
+def placement_credit_errors(profile: dict[str, Any], curricula: Sequence[dict[str, Any]]) -> list[str]:
+    """A level may only be skipped when its exit check really tested both skills.
+
+    One formally valid integrated record is not enough: the record's own skill
+    dimension, the listening grade, and the per-knowledge dimension coverage are
+    all checked. Anything else stays `provisional` at the lower unit.
+    """
     units, _objectives, _knowledge, _levels, _owner = _curriculum_indexes(curricula)
     exit_units = set(exit_unit_by_level(curricula).values())
-    level_requirements = level_placement_requirements(curricula)
-    unit_level = {unit_id: level for level, unit_id in exit_unit_by_level(curricula).items()}
     position = profile.get("current_course_position", {})
     credited = set(position.get("placement_credited_unit_ids", []))
     track = profile.get("learning_track", {})
     basis = track.get("placement_basis")
 
+    errors: list[str] = []
     if basis == "learner_choice" and credited:
         errors.append("placement_basis learner_choice cannot skip a unit; an independent level check is required")
 
-    for unit_id in sorted(credited):
-        if unit_id not in units:
-            continue
-        if unit_id not in exit_units:
-            errors.append(f"{unit_id}: only a level-exit unit may receive placement credit")
-            continue
-        unit = units[unit_id]
-        evidence = [
-            entry
+    unknown_units = credited - units.keys()
+    for unit_id in sorted(unknown_units):
+        errors.append(f"unknown placement credited unit {unit_id}")
+    for unit_id in sorted(credited - exit_units - unknown_units):
+        errors.append(f"{unit_id}: only a level-exit unit may receive placement credit")
+    for unit_id in sorted(credited & exit_units):
+        if not any(
+            entry.get("unit_id") == unit_id and entry.get("phase") == "placement"
             for entry in profile.get("practice_evidence", [])
-            if entry.get("unit_id") == unit_id and evidence_is_placement_credit(entry)
-        ]
-        if not evidence:
+        ):
             errors.append(f"{unit_id}: placement credit needs an independent placement check")
-            continue
-        covered: set[str] = set()
-        for entry in evidence:
-            covered.update(entry.get("knowledge_ids", []))
-        required = set(level_requirements.get(unit_level[unit_id], unit_knowledge_requirements(unit)))
-        missing = sorted(required - covered)
-        if missing:
-            errors.append(
-                f"{unit_id}: placement credit does not cover the level's required knowledge {missing}"
-            )
-        dimensions: set[str] = set()
-        for knowledge_id in covered:
-            dimensions.update(knowledge_required_dimensions(knowledge_id, curricula))
-        if not {"listening", "speaking"} <= dimensions:
-            errors.append(
-                f"{unit_id}: placement credit must cover both listening and speaking, found {sorted(dimensions)}"
-            )
+    for problems in level_placement_evidence_gaps(profile, curricula).values():
+        errors.extend(problems)
     return errors
 
 
@@ -1767,18 +2033,28 @@ def validate_profile(
         if grade is not None and grade not in LISTENING_CHECK_GRADES:
             errors.append(f"{evidence_id}: unknown listening_check_grade {grade!r}")
         if grade == "strict_unseen":
+            # The grade describes the test conditions, not the outcome: failing a
+            # strict unseen check is a legitimate, useful record.
             if evidence.get("text_shown_before_response") is not False:
                 errors.append(f"{evidence_id}: strict unseen listening requires text_shown_before_response false")
             if evidence.get("prompt_novelty") != "unseen":
                 errors.append(f"{evidence_id}: strict unseen listening requires an unseen prompt")
             if evidence.get("modality") not in {"voice", "mixed"}:
                 errors.append(f"{evidence_id}: strict unseen listening requires voice or mixed modality")
-        if grade == "text_supported_practice" and evidence.get("result") == "PASS":
-            if evidence.get("phase") in {"independent_expression", "check", "review"}:
+            if evidence.get("support_level") not in INDEPENDENT_SUPPORT:
+                errors.append(f"{evidence_id}: strict unseen listening requires no answer-revealing support")
+        if grade in {"text_supported_practice", "unknown"} and evidence.get("result") == "PASS":
+            if evidence.get("phase") in INDEPENDENT_PHASES:
                 errors.append(
-                    f"{evidence_id}: a text-supported listening attempt must be downgraded to practice, "
-                    "not recorded as an independent check"
+                    f"{evidence_id}: a listening attempt graded {grade!r} must be recorded as practice, "
+                    "not as an independent check"
                 )
+        verification = evidence.get("screening_verification")
+        if verification is not None and verification != screening_verification_status(evidence):
+            errors.append(
+                f"{evidence_id}: screening_verification {verification!r} does not match the record "
+                f"({screening_verification_status(evidence)!r})"
+            )
         score_keys = {
             key
             for key in evidence
@@ -1812,8 +2088,18 @@ def validate_profile(
                     if unknown_targets:
                         errors.append(f"{evidence_id}: knowledge is outside objective targets {sorted(unknown_targets)}")
                     if "unseen_audio" in objective["evidence_requirement"] and evidence.get("result") == "PASS":
-                        if not evidence_is_unseen_listening(evidence):
-                            errors.append(f"{evidence_id}: unseen listening PASS needs hidden novel voice evidence")
+                        grade = evidence.get("listening_check_grade")
+                        if grade is None:
+                            errors.append(
+                                f"{evidence_id}: an unseen listening PASS must state listening_check_grade "
+                                "explicitly (strict_unseen, or unknown/text_supported_practice after downgrading)"
+                            )
+                        elif grade == "strict_unseen" and not evidence_is_unseen_listening(evidence):
+                            errors.append(
+                                f"{evidence_id}: strict unseen listening PASS is not supported by this record "
+                                "(needs phase independent_expression/check/review, unseen prompt, hidden text, "
+                                "voice or mixed modality, and no answer-revealing support)"
+                            )
             for knowledge_id in evidence.get("knowledge_ids", []):
                 if knowledge_id not in curriculum_knowledge:
                     errors.append(f"{evidence_id}: unknown curriculum knowledge {knowledge_id}")
@@ -2157,6 +2443,62 @@ def _skill_dimension_errors(
 # ---------------------------------------------------------------------------
 
 
+def profile_sort_key(path: Path) -> tuple[str, int, str]:
+    """Rank a profile file by its own metadata, never by its filename."""
+    try:
+        data = load_json(path)
+    except (OSError, json.JSONDecodeError):
+        return ("", 0, path.name)
+    if not isinstance(data, dict) or "current_course_position" not in data:
+        return ("", 0, path.name)
+    try:
+        revision = int(data.get("profile_revision", 0))
+    except (TypeError, ValueError):
+        revision = 0
+    return (str(data.get("updated_at", "")), revision, path.name)
+
+
+def select_latest_profile(
+    directory: Path, pattern: str = "*.json"
+) -> tuple[Path, list[dict[str, Any]]]:
+    """Choose the newest learner profile by `updated_at` and `profile_revision`.
+
+    The filename is only a tie-breaker. Candidates that do not parse as a learner
+    profile are reported, never silently chosen.
+    """
+    candidates = sorted(path for path in Path(directory).glob(pattern) if path.is_file())
+    ranked: list[dict[str, Any]] = []
+    for path in candidates:
+        updated_at, revision, name = profile_sort_key(path)
+        ranked.append(
+            {
+                "path": str(path),
+                "filename": name,
+                "updated_at": updated_at or None,
+                "profile_revision": revision or None,
+                "is_profile": bool(updated_at),
+            }
+        )
+    profiles = [entry for entry in ranked if entry["is_profile"]]
+    if not profiles:
+        raise ValidationError(
+            [
+                f"no learner profile found in {directory} (looked at {len(candidates)} file(s)); "
+                "upload the latest English_Learning_Profile*.json"
+            ]
+        )
+    ranked.sort(
+        key=lambda entry: (
+            entry["is_profile"],
+            entry["updated_at"] or "",
+            entry["profile_revision"] or 0,
+            entry["filename"],
+        ),
+        reverse=True,
+    )
+    return Path(ranked[0]["path"]), ranked
+
+
 def next_export_path(source_path: Path, export_date: date, output_dir: Path | None = None) -> Path:
     output_dir = output_dir or source_path.parent
     base = f"English_Learning_Profile_updated_{export_date.isoformat()}"
@@ -2202,6 +2544,35 @@ def export_profile(
 # ---------------------------------------------------------------------------
 
 
+def screening_verification_status(evidence: dict[str, Any]) -> str:
+    """How much a screening record can actually prove.
+
+    - `strict_independent`: every condition of an independent check is explicit.
+    - `practice_only`: the attempt happened but support or conditions were not
+      independent, so it may only be recorded as practice.
+    - `unverified_conditions`: the record does not state whether the prompt was
+      unseen or whether text was visible, so nothing can be claimed.
+    - `failed`: the attempt did not succeed.
+    """
+    if evidence.get("result") != "PASS":
+        return "failed"
+    if evidence.get("prompt_novelty") in {None, "unknown", "not_applicable"}:
+        return "unverified_conditions"
+    if evidence.get("text_shown_before_response") is None:
+        return "unverified_conditions"
+    if evidence.get("support_level") not in INDEPENDENT_SUPPORT:
+        return "practice_only"
+    if evidence.get("prompt_novelty") != "unseen":
+        return "practice_only"
+    if evidence.get("modality") not in {"voice", "mixed"}:
+        return "practice_only"
+    if placement_evidence_skill(evidence) is None:
+        return "unverified_conditions"
+    if placement_evidence_skill(evidence) == "listening" and not evidence_is_strict_unseen_listening(evidence):
+        return "unverified_conditions"
+    return "strict_independent"
+
+
 def init_profile(
     placement: dict[str, Any],
     curricula: Sequence[dict[str, Any]],
@@ -2209,9 +2580,11 @@ def init_profile(
 ) -> dict[str, Any]:
     """Build the first v3.0 profile from a placement/screening record.
 
-    Only records that satisfy the placement-credit rules can skip a level. A
-    learner whose screening is thin stays `provisional` at the lower unit and
-    receives a bridge check instead of an unlocked upper level.
+    Missing screening fields are never filled with favourable assumptions: an
+    unstated prompt novelty stays `unknown`, an unstated text exposure stays
+    `null`, and an unstated skill dimension stays absent. Such records therefore
+    cannot credit a level — the learner stays `provisional` and receives a bridge
+    check instead of an unlocked upper level.
     """
     now = now or datetime.now(timezone.utc)
     for field in ("timezone", "target_english_variety", "screening_session", "screening_evidence"):
@@ -2233,12 +2606,17 @@ def init_profile(
         record.setdefault("objective_id", None)
         record.setdefault("phase", "placement")
         record.setdefault("pronunciation_evidence_basis", "not_applicable")
-        record.setdefault("prompt_novelty", "unseen")
-        record.setdefault("text_shown_before_response", False)
+        # Honest defaults: an unstated condition is unknown, never favourable.
+        record.setdefault("prompt_novelty", "unknown")
+        record.setdefault("text_shown_before_response", None)
+        # The grade is never inferred, not even from otherwise strict-looking
+        # fields: the coach must declare `strict_unseen` explicitly.
+        record.setdefault("listening_check_grade", "unknown")
         if record.get("phase") != "placement":
             raise ValidationError([f"screening evidence {record['evidence_id']} must use phase placement"])
         if record.get("objective_id") is not None:
             raise ValidationError([f"screening evidence {record['evidence_id']} must not target an objective"])
+        record["screening_verification"] = screening_verification_status(record)
         evidence.append(record)
 
     referenced = sorted({knowledge_id for record in evidence for knowledge_id in record.get("knowledge_ids", [])})
@@ -2386,6 +2764,11 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("command", choices=["validate", "audit", "prepare", "plan", "export", "init-profile"], nargs="?", default="validate")
     parser.add_argument("--root", type=Path, default=ROOT)
     parser.add_argument("--profile", type=Path, help="path to the learner profile JSON")
+    parser.add_argument(
+        "--profile-dir",
+        type=Path,
+        help="directory to scan for the newest profile (ranked by updated_at and profile_revision)",
+    )
     parser.add_argument("--placement", type=Path, help="path to a placement/screening JSON for init-profile")
     parser.add_argument("--out", type=Path, help="output file (init-profile) or output directory (export)")
     parser.add_argument("--date", type=str, help="lesson/export date, YYYY-MM-DD")
@@ -2433,27 +2816,55 @@ def main(argv: Sequence[str] | None = None) -> int:
                     "unit_status": reloaded["current_course_position"]["unit_status"],
                     "unlocked_unit_ids": reloaded["current_course_position"]["unlocked_unit_ids"],
                     "placement_credited_unit_ids": reloaded["current_course_position"]["placement_credited_unit_ids"],
+                    "screening_verification": [
+                        {
+                            "evidence_id": record["evidence_id"],
+                            "skill": record.get("skill"),
+                            "result": record.get("result"),
+                            "verification": record.get("screening_verification"),
+                        }
+                        for record in reloaded["practice_evidence"]
+                    ],
+                    "note": (
+                        "Records whose verification is not strict_independent cannot credit a level; "
+                        "the learner stays provisional and needs a bridge check."
+                    ),
                 },
                 args.json,
             )
             return 0
 
-        if not args.profile:
-            raise ValidationError([f"{args.command} requires --profile"])
-        profile = load_json(args.profile)
+        if not args.profile and not args.profile_dir:
+            raise ValidationError([f"{args.command} requires --profile or --profile-dir"])
+        selection: list[dict[str, Any]] = []
+        profile_path = args.profile
+        if profile_path is None:
+            profile_path, selection = select_latest_profile(args.profile_dir)
+            if not args.json:
+                print(f"Selected profile: {profile_path}")
+                for entry in selection:
+                    flag = "->" if entry["path"] == str(profile_path) else "  "
+                    print(
+                        f"  {flag} {entry['filename']}  updated_at={entry['updated_at']} "
+                        f"revision={entry['profile_revision']} profile={entry['is_profile']}"
+                    )
+        profile = load_json(profile_path)
         version = str(profile.get("schema_version", ""))
         if version != "3.0":
             profile = migrate_profile(profile)
             _print(f"Migrated profile schema {version} -> 3.0", args.json)
         if args.command == "prepare":
-            recompute_knowledge_states(profile, curricula)
-            sync_course_position(profile, curricula, advance=False)
+            # Normalization only moves the position when the current unit became
+            # done or locked, so a valid in-progress position is never disturbed.
+            normalize_profile(profile, curricula)
         validate_profile(profile, curricula, profile_schema)
 
         if args.command == "prepare":
             plan = plan_lesson(profile, curricula, today=today)
             _print(
                 {
+                    "profile": str(profile_path),
+                    "profile_candidates": selection,
                     "profile_revision": profile["profile_revision"],
                     "position": profile["current_course_position"],
                     "plan": plan,

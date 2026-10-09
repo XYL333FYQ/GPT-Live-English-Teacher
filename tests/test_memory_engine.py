@@ -138,6 +138,7 @@ class EvidenceSemanticsTests(unittest.TestCase):
             "result": result,
             "prompt_novelty": "unseen" if phase in {"placement", "independent_expression", "check", "review"} else "rehearsed",
             "text_shown_before_response": False,
+            "skill": "speaking",
         }
 
     def test_repetition_never_becomes_independent(self) -> None:

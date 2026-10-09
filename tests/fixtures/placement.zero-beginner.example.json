@@ -19,6 +19,8 @@
       "result": "PARTIAL",
       "learner_response_summary": "听到 hello 有反应；对 listen/say 需要中文重复后才动作。",
       "skill": "listening",
+      "prompt_novelty": "unseen",
+      "text_shown_before_response": false,
       "listening_check_grade": "strict_unseen"
     },
     {
@@ -29,6 +31,8 @@
       "result": "PARTIAL",
       "learner_response_summary": "在给出中文提示后重复了 I don't understand。",
       "skill": "speaking",
+      "prompt_novelty": "rehearsed",
+      "text_shown_before_response": false,
       "listening_check_grade": "not_applicable"
     }
   ]
