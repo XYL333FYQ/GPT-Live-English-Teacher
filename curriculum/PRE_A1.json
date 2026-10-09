@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "curriculum_id": "gpt-live-english-foundations",
-  "curriculum_version": "1.0.0",
+  "curriculum_version": "1.1.0",
   "level_id": "PRE_A1",
   "level_order": 0,
   "title_zh": "Pre-A1 零起点生存英语",
@@ -42,6 +42,10 @@
         {"objective_id": "PRE_A1-O002", "mode": "interaction", "can_do_zh": "听不懂时主动说出一个求助短句。", "target_knowledge_ids": ["PRE_A1-K002", "PRE_A1-K003"], "evidence_requirement": "independent_response_without_revealing_prompt"}
       ],
       "teaching_notes_zh": ["先用中文说明每个课堂动作。", "一次只说一个英文指令，等待反应。", "学习者可随时用中文求助。"],
+      "lesson_segments": [
+        {"segment_id": "PRE_A1-U01-S1", "focus_zh": "听懂课堂指令并用 yes/no 回应", "knowledge_ids": ["PRE_A1-K001", "PRE_A1-K004"], "target_objective_ids": ["PRE_A1-O001"], "max_new_items": 2},
+        {"segment_id": "PRE_A1-U01-S2", "focus_zh": "听不懂时的两个求助短句", "knowledge_ids": ["PRE_A1-K002", "PRE_A1-K003"], "target_objective_ids": ["PRE_A1-O002"], "max_new_items": 2}
+      ],
       "completion_criteria": {
         "required_objective_ids": ["PRE_A1-O001", "PRE_A1-O002"],
         "minimum_independent_passes_per_objective": 1,
@@ -69,6 +73,10 @@
         {"objective_id": "PRE_A1-O004", "mode": "listening", "can_do_zh": "从两个陌生姓名中听辨对方说出的姓名。", "target_knowledge_ids": ["PRE_A1-K007"], "evidence_requirement": "unseen_audio_choice_without_text"}
       ],
       "teaching_notes_zh": ["中文先说明问答轮次。", "姓名可使用学习者真实姓名。", "跟读后必须换角色重新开始，才进入独立表达。"],
+      "lesson_segments": [
+        {"segment_id": "PRE_A1-U02-S1", "focus_zh": "问候、自我介绍与告别", "knowledge_ids": ["PRE_A1-K005", "PRE_A1-K006"], "target_objective_ids": ["PRE_A1-O003"], "max_new_items": 2},
+        {"segment_id": "PRE_A1-U02-S2", "focus_zh": "询问姓名与最基础的 be 动词", "knowledge_ids": ["PRE_A1-K007", "PRE_A1-K008"], "target_objective_ids": ["PRE_A1-O003", "PRE_A1-O004"], "max_new_items": 2}
+      ],
       "completion_criteria": {
         "required_objective_ids": ["PRE_A1-O003", "PRE_A1-O004"],
         "minimum_independent_passes_per_objective": 1,
@@ -96,6 +104,12 @@
         {"objective_id": "PRE_A1-O006", "mode": "listening", "can_do_zh": "听辨三组与本人相关的字母序列。", "target_knowledge_ids": ["PRE_A1-K009", "PRE_A1-K012"], "evidence_requirement": "unseen_audio_choice_without_text"}
       ],
       "teaching_notes_zh": ["只选学习者姓名所需字母和少量易混字母。", "语音观察只记录是否可懂及混淆现象，不给精确音素分数。"],
+      "lesson_segments": [
+        {"segment_id": "PRE_A1-U03-S1", "focus_zh": "字母 A–M 认读（只取姓名用到的字母）", "knowledge_ids": ["PRE_A1-K009"], "target_objective_ids": ["PRE_A1-O005"], "max_new_items": 2, "staged_repeat_zh": "26 个字母必须分阶段练，本课次只处理 A–M。"},
+        {"segment_id": "PRE_A1-U03-S2", "focus_zh": "字母 N–Z 认读并拼出姓名", "knowledge_ids": ["PRE_A1-K009"], "target_objective_ids": ["PRE_A1-O005", "PRE_A1-O006"], "max_new_items": 2, "staged_repeat_zh": "继续剩余字母，不要求一次记全 26 个。"},
+        {"segment_id": "PRE_A1-U03-S3", "focus_zh": "询问拼写并说出拼写", "knowledge_ids": ["PRE_A1-K010", "PRE_A1-K011"], "target_objective_ids": ["PRE_A1-O005"], "max_new_items": 2},
+        {"segment_id": "PRE_A1-U03-S4", "focus_zh": "易混字母名称的可懂度", "knowledge_ids": ["PRE_A1-K012"], "target_objective_ids": ["PRE_A1-O006"], "max_new_items": 1}
+      ],
       "completion_criteria": {
         "required_objective_ids": ["PRE_A1-O005", "PRE_A1-O006"],
         "minimum_independent_passes_per_objective": 1,
@@ -123,6 +137,11 @@
         {"objective_id": "PRE_A1-O008", "mode": "listening", "can_do_zh": "听辨四个未按教学顺序出现的数字。", "target_knowledge_ids": ["PRE_A1-K013", "PRE_A1-K016"], "evidence_requirement": "unseen_audio_choice_without_text"}
       ],
       "teaching_notes_zh": ["先练 0–10，再按需要扩展到 20。", "不得要求提供真实电话号码，可使用虚构号码。"],
+      "lesson_segments": [
+        {"segment_id": "PRE_A1-U04-S1", "focus_zh": "数字 0–10 听与说", "knowledge_ids": ["PRE_A1-K013"], "target_objective_ids": ["PRE_A1-O007"], "max_new_items": 2, "staged_repeat_zh": "0–20 不是一个瞬间学会的知识点，先固定 0–10。"},
+        {"segment_id": "PRE_A1-U04-S2", "focus_zh": "数字 11–20 与说年龄", "knowledge_ids": ["PRE_A1-K013", "PRE_A1-K014"], "target_objective_ids": ["PRE_A1-O007", "PRE_A1-O008"], "max_new_items": 2},
+        {"segment_id": "PRE_A1-U04-S3", "focus_zh": "号码表达与连续数字听辨", "knowledge_ids": ["PRE_A1-K015", "PRE_A1-K016"], "target_objective_ids": ["PRE_A1-O007", "PRE_A1-O008"], "max_new_items": 2}
+      ],
       "completion_criteria": {
         "required_objective_ids": ["PRE_A1-O007", "PRE_A1-O008"],
         "minimum_independent_passes_per_objective": 1,
@@ -150,6 +169,10 @@
         {"objective_id": "PRE_A1-O010", "mode": "listening", "can_do_zh": "听懂对两个物品的简短指认。", "target_knowledge_ids": ["PRE_A1-K017", "PRE_A1-K018"], "evidence_requirement": "unseen_audio_choice_without_text"}
       ],
       "teaching_notes_zh": ["优先使用学习者看得到的实物。", "不引入复数规则或复杂描述。"],
+      "lesson_segments": [
+        {"segment_id": "PRE_A1-U05-S1", "focus_zh": "指认近处与远处的人和物", "knowledge_ids": ["PRE_A1-K017", "PRE_A1-K018"], "target_objective_ids": ["PRE_A1-O009", "PRE_A1-O010"], "max_new_items": 2},
+        {"segment_id": "PRE_A1-U05-S2", "focus_zh": "基础颜色与询问这是什么", "knowledge_ids": ["PRE_A1-K019", "PRE_A1-K020"], "target_objective_ids": ["PRE_A1-O009"], "max_new_items": 2}
+      ],
       "completion_criteria": {
         "required_objective_ids": ["PRE_A1-O009", "PRE_A1-O010"],
         "minimum_independent_passes_per_objective": 1,
@@ -177,6 +200,10 @@
         {"objective_id": "PRE_A1-O012", "mode": "interaction", "can_do_zh": "在简单点单中独立提出一个礼貌请求。", "target_knowledge_ids": ["PRE_A1-K022", "PRE_A1-K024"], "evidence_requirement": "independent_role_play_without_sentence_starter"}
       ],
       "teaching_notes_zh": ["先给图片或中文选项，再移除句型提示。", "只要求一个请求，不追加数量和价格。"],
+      "lesson_segments": [
+        {"segment_id": "PRE_A1-U06-S1", "focus_zh": "表达喜欢与不喜欢", "knowledge_ids": ["PRE_A1-K021", "PRE_A1-K023"], "target_objective_ids": ["PRE_A1-O011"], "max_new_items": 2},
+        {"segment_id": "PRE_A1-U06-S2", "focus_zh": "礼貌请求与致谢", "knowledge_ids": ["PRE_A1-K022", "PRE_A1-K024"], "target_objective_ids": ["PRE_A1-O012"], "max_new_items": 2}
+      ],
       "completion_criteria": {
         "required_objective_ids": ["PRE_A1-O011", "PRE_A1-O012"],
         "minimum_independent_passes_per_objective": 1,
@@ -204,6 +231,10 @@
         {"objective_id": "PRE_A1-O014", "mode": "listening", "can_do_zh": "听懂物品在里面或上面的区别。", "target_knowledge_ids": ["PRE_A1-K027", "PRE_A1-K028"], "evidence_requirement": "unseen_audio_choice_without_text"}
       ],
       "teaching_notes_zh": ["用两个真实或想象中的位置形成最小对比。", "暂不引入完整地点介词系统。"],
+      "lesson_segments": [
+        {"segment_id": "PRE_A1-U07-S1", "focus_zh": "询问物品位置并理解短答", "knowledge_ids": ["PRE_A1-K025", "PRE_A1-K026"], "target_objective_ids": ["PRE_A1-O013"], "max_new_items": 2},
+        {"segment_id": "PRE_A1-U07-S2", "focus_zh": "in/on 的区别与位置听辨", "knowledge_ids": ["PRE_A1-K027", "PRE_A1-K028"], "target_objective_ids": ["PRE_A1-O014"], "max_new_items": 2}
+      ],
       "completion_criteria": {
         "required_objective_ids": ["PRE_A1-O013", "PRE_A1-O014"],
         "minimum_independent_passes_per_objective": 1,
@@ -232,6 +263,10 @@
         {"objective_id": "PRE_A1-O017", "mode": "listening", "can_do_zh": "听懂一个只含本级已学语言的新短对话，并选出人物需求。", "target_knowledge_ids": ["PRE_A1-K004", "PRE_A1-K016", "PRE_A1-K028"], "evidence_requirement": "unseen_audio_choice_without_text"}
       ],
       "teaching_notes_zh": ["综合任务只调用本级已学语言。", "中文可用于说明场景，但检验阶段不提供目标英文。"],
+      "lesson_segments": [
+        {"segment_id": "PRE_A1-U08-S1", "focus_zh": "日常动作与最短句", "knowledge_ids": ["PRE_A1-K029", "PRE_A1-K030"], "target_objective_ids": ["PRE_A1-O015"], "max_new_items": 2},
+        {"segment_id": "PRE_A1-U08-S2", "focus_zh": "时间表达与四步生存对话", "knowledge_ids": ["PRE_A1-K031", "PRE_A1-K032"], "target_objective_ids": ["PRE_A1-O015", "PRE_A1-O016", "PRE_A1-O017"], "max_new_items": 2}
+      ],
       "completion_criteria": {
         "required_objective_ids": ["PRE_A1-O015", "PRE_A1-O016", "PRE_A1-O017"],
         "minimum_independent_passes_per_objective": 1,

@@ -13,9 +13,12 @@ from tools.learning_data import (
     CURRICULUM_LEVELS,
     ValidationError,
     export_profile,
+    init_profile,
+    level_placement_requirements,
     load_json,
     migrate_profile,
     next_export_path,
+    recompute_knowledge_states,
     unit_completion,
     validate_profile,
 )
@@ -140,14 +143,15 @@ class ProfileTests(unittest.TestCase):
     def test_unit_completion_ignores_guided_evidence(self) -> None:
         profile = load_json(PROFILE_PATH)
         unit = curricula()[0]["units"][1]
-        complete, missing = unit_completion(profile, unit)
+        complete, missing, missing_knowledge = unit_completion(profile, unit)
         self.assertFalse(complete)
         self.assertIn("PRE_A1-O003", missing)
+        self.assertIn("PRE_A1-K005", missing_knowledge)
 
         profile["practice_evidence"].extend(
             [
                 {
-                    "evidence_id": "evidence_0007",
+                    "evidence_id": "evidence_0008",
                     "session_id": "session_0003",
                     "date": "2026-10-09",
                     "unit_id": "PRE_A1-U02",
@@ -163,7 +167,7 @@ class ProfileTests(unittest.TestCase):
                     "text_shown_before_response": False,
                 },
                 {
-                    "evidence_id": "evidence_0008",
+                    "evidence_id": "evidence_0009",
                     "session_id": "session_0003",
                     "date": "2026-10-09",
                     "unit_id": "PRE_A1-U02",
@@ -177,12 +181,22 @@ class ProfileTests(unittest.TestCase):
                     "pronunciation_evidence_basis": "not_applicable",
                     "prompt_novelty": "unseen",
                     "text_shown_before_response": False,
+                    "listening_check_grade": "strict_unseen",
                 },
             ]
         )
-        complete, missing = unit_completion(profile, unit)
+        profile["session_log"].append(
+            {
+                "session_id": "session_0003",
+                "date": "2026-10-09",
+                "evidence_ids": ["evidence_0008", "evidence_0009"],
+            }
+        )
+        recompute_knowledge_states(profile, curricula())
+        complete, missing, missing_knowledge = unit_completion(profile, unit)
         self.assertTrue(complete)
         self.assertEqual(missing, [])
+        self.assertEqual(missing_knowledge, [])
 
     def test_text_pass_cannot_satisfy_unseen_listening(self) -> None:
         profile = load_json(PROFILE_PATH)
@@ -190,7 +204,7 @@ class ProfileTests(unittest.TestCase):
         profile["practice_evidence"].extend(
             [
                 {
-                    "evidence_id": "evidence_0007",
+                    "evidence_id": "evidence_0008",
                     "session_id": "session_0003",
                     "unit_id": "PRE_A1-U02",
                     "objective_id": "PRE_A1-O003",
@@ -202,7 +216,7 @@ class ProfileTests(unittest.TestCase):
                     "text_shown_before_response": False,
                 },
                 {
-                    "evidence_id": "evidence_0008",
+                    "evidence_id": "evidence_0009",
                     "session_id": "session_0003",
                     "unit_id": "PRE_A1-U02",
                     "objective_id": "PRE_A1-O004",
@@ -215,7 +229,7 @@ class ProfileTests(unittest.TestCase):
                 },
             ]
         )
-        complete, missing = unit_completion(profile, unit)
+        complete, missing, _missing_knowledge = unit_completion(profile, unit)
         self.assertFalse(complete)
         self.assertEqual(missing, ["PRE_A1-O004"])
 
@@ -224,7 +238,7 @@ class ProfileTests(unittest.TestCase):
         unit = curricula()[0]["units"][1]
         profile["practice_evidence"].append(
             {
-                "evidence_id": "evidence_0007",
+                "evidence_id": "evidence_0008",
                 "session_id": "session_0003",
                 "unit_id": "PRE_A1-U02",
                 "objective_id": "PRE_A1-O003",
@@ -236,10 +250,11 @@ class ProfileTests(unittest.TestCase):
                 "text_shown_before_response": False,
             }
         )
-        _, missing = unit_completion(profile, unit)
+        _complete, missing, _missing_knowledge = unit_completion(profile, unit)
         self.assertIn("PRE_A1-O003", missing)
 
-    def test_placement_credit_can_unlock_a_higher_level(self) -> None:
+    def test_thin_placement_credit_is_rejected(self) -> None:
+        """One formally valid record must not skip a whole level."""
         profile = load_json(PROFILE_PATH)
         profile["session_log"].append(
             {"session_id": "placement_0001", "date": "2026-10-09", "evidence_ids": ["evidence_placement"]}
@@ -256,7 +271,7 @@ class ProfileTests(unittest.TestCase):
                 "modality": "voice",
                 "support_level": "none",
                 "result": "PASS",
-                "learner_response_summary": "Passed an unseen integrated Pre-A1 exit check.",
+                "learner_response_summary": "Answered three personal questions.",
                 "pronunciation_evidence_basis": "not_applicable",
                 "prompt_novelty": "unseen",
                 "text_shown_before_response": False,
@@ -291,6 +306,69 @@ class ProfileTests(unittest.TestCase):
             "completed_unit_ids": [],
             "placement_credited_unit_ids": ["PRE_A1-U08"],
         }
+        with self.assertRaises(ValidationError) as context:
+            validate_profile(profile, curricula(), PROFILE_SCHEMA)
+        self.assertTrue(
+            any("does not cover the level's required knowledge" in error for error in context.exception.errors)
+        )
+
+    def test_placement_credit_requires_a_full_listening_and_speaking_exit_check(self) -> None:
+        """A complete exit check skips exactly one level and unlocks the next one."""
+        requirements = level_placement_requirements(curricula())["PRE_A1"]
+        placement = {
+            "timezone": "Asia/Shanghai",
+            "target_english_variety": "General_American",
+            "screening_session": {"session_id": "placement_0001", "date": "2026-10-09"},
+            "screening_evidence": [
+                {
+                    "evidence_id": "evidence_placement_0001",
+                    "unit_id": "PRE_A1-U08",
+                    "knowledge_ids": requirements,
+                    "modality": "mixed",
+                    "support_level": "none",
+                    "result": "PASS",
+                    "learner_response_summary": "Passed an unseen integrated Pre-A1 exit check.",
+                    "prompt_novelty": "unseen",
+                    "text_shown_before_response": False,
+                    "listening_check_grade": "strict_unseen",
+                }
+            ],
+        }
+        profile = init_profile(placement, curricula())
+        validate_profile(profile, curricula(), PROFILE_SCHEMA)
+        self.assertEqual(profile["current_course_position"]["placement_credited_unit_ids"], ["PRE_A1-U08"])
+        self.assertEqual(profile["current_course_position"]["completed_unit_ids"], [])
+        self.assertEqual(profile["learning_track"]["current_level"], "A1")
+        self.assertEqual(profile["current_course_position"]["unit_id"], "A1-U01")
+        self.assertIn("A1-U01", profile["current_course_position"]["unlocked_unit_ids"])
+        self.assertTrue(
+            all(
+                entry["state"] == "placement_credited"
+                for entry in profile["knowledge_state"]
+                if entry["knowledge_id"] in requirements
+            )
+        )
+
+    def test_zero_beginner_placement_stays_provisional(self) -> None:
+        placement = load_json(ROOT / "tests" / "fixtures" / "placement.zero-beginner.example.json")
+        profile = init_profile(placement, curricula())
+        validate_profile(profile, curricula(), PROFILE_SCHEMA)
+        self.assertEqual(profile["scientific_assessment"]["assessment_status"], "provisional")
+        self.assertEqual(profile["learning_track"]["placement_basis"], "initial_screening")
+        self.assertEqual(profile["current_course_position"]["placement_credited_unit_ids"], [])
+        self.assertEqual(profile["current_course_position"]["unit_id"], "PRE_A1-U01")
+        self.assertEqual(profile["current_course_position"]["unlocked_unit_ids"], ["PRE_A1-U01"])
+
+    def test_learner_choice_cannot_credit_knowledge(self) -> None:
+        profile = load_json(PROFILE_PATH)
+        profile["learning_track"]["placement_basis"] = "learner_choice"
+        profile["current_course_position"]["placement_credited_unit_ids"] = ["PRE_A1-U08"]
+        with self.assertRaises(ValidationError):
+            validate_profile(profile, curricula(), PROFILE_SCHEMA)
+
+    def test_curriculum_release_1_0_0_profiles_still_validate(self) -> None:
+        profile = load_json(PROFILE_PATH)
+        profile["learning_track"]["curriculum_version"] = "1.0.0"
         validate_profile(profile, curricula(), PROFILE_SCHEMA)
 
     def test_export_never_overwrites_source_or_existing_export(self) -> None:

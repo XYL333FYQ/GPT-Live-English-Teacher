@@ -71,6 +71,19 @@
         "transcript_only_pronunciation_scoring_allowed": {"const": false}
       }
     },
+    "lessonSegment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["segment_id", "focus_zh", "knowledge_ids", "max_new_items"],
+      "properties": {
+        "segment_id": {"type": "string", "pattern": "^(PRE_A1|A1|A2|B1)-U[0-9]{2}-S[A-Za-z0-9]+$"},
+        "focus_zh": {"type": "string", "minLength": 1},
+        "knowledge_ids": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+        "target_objective_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
+        "max_new_items": {"type": "integer", "minimum": 1},
+        "staged_repeat_zh": {"type": "string"}
+      }
+    },
     "unit": {
       "type": "object",
       "additionalProperties": false,
@@ -85,7 +98,8 @@
         "knowledge": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/knowledge"}},
         "objectives": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/objective"}},
         "teaching_notes_zh": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
-        "completion_criteria": {"$ref": "#/$defs/completion"}
+        "completion_criteria": {"$ref": "#/$defs/completion"},
+        "lesson_segments": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/lessonSegment"}}
       }
     }
   }

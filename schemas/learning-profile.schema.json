@@ -34,9 +34,19 @@
         "unit_id": {"type": ["string", "null"]},
         "unit_status": {"enum": ["not_started", "in_progress", "completed", "mastered", "needs_curriculum_mapping", "not_applicable"]},
         "lesson_phase": {"enum": [null, "course_goal", "demonstration", "repeat_after_model", "guided_practice", "independent_expression", "check", "review"]},
+        "lesson_segment_id": {"type": ["string", "null"]},
+        "completed_lesson_segment_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
         "unlocked_unit_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
         "completed_unit_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
         "placement_credited_unit_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string"}}
+      }
+    },
+    "learner_preferences": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "pace": {"enum": ["normal", "faster", "slower", "review_only", "paused"]},
+        "notes_zh": {"type": "string"}
       }
     },
     "knowledge_state": {
@@ -53,7 +63,20 @@
           "independent_pass_sessions": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
           "review_pass_sessions": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
           "last_review_date": {"type": ["string", "null"], "pattern": "^\\d{4}-\\d{2}-\\d{2}$"},
-          "next_review_date": {"type": ["string", "null"], "pattern": "^\\d{4}-\\d{2}-\\d{2}$"}
+          "next_review_date": {"type": ["string", "null"], "pattern": "^\\d{4}-\\d{2}-\\d{2}$"},
+          "required_dimensions": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {"enum": ["listening", "speaking"]}
+          },
+          "skill_states": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "listening": {"enum": ["not_started", "introduced", "supported", "independent", "mastered", "placement_credited"]},
+              "speaking": {"enum": ["not_started", "introduced", "supported", "independent", "mastered", "placement_credited"]}
+            }
+          }
         }
       }
     },
@@ -138,7 +161,9 @@
         "learner_response_summary": {"type": "string", "minLength": 1},
         "pronunciation_evidence_basis": {"enum": ["direct_live_audio", "transcript_only", "not_assessed", "not_applicable"]},
         "prompt_novelty": {"enum": ["unseen", "rehearsed", "not_applicable", "unknown"]},
-        "text_shown_before_response": {"type": "boolean"},
+        "text_shown_before_response": {"type": ["boolean", "null"]},
+        "skill": {"enum": ["listening", "speaking"]},
+        "listening_check_grade": {"enum": ["strict_unseen", "text_supported_practice", "unknown", "not_applicable"]},
         "notes": {"type": "string"}
       }
     }

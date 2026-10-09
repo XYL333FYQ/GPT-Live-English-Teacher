@@ -16,7 +16,7 @@
   },
   "learning_track": {
     "curriculum_id": "gpt-live-english-foundations",
-    "curriculum_version": "1.0.0",
+    "curriculum_version": "1.1.0",
     "current_level": "PRE_A1",
     "mode": "structured_curriculum",
     "placement_basis": "initial_screening",
@@ -33,6 +33,18 @@
   },
   "knowledge_state": [
     {
+      "knowledge_id": "PRE_A1-K001",
+      "unit_id": "PRE_A1-U01",
+      "state": "independent",
+      "evidence_ids": ["evidence_0007"],
+      "independent_pass_sessions": ["session_0001"],
+      "review_pass_sessions": ["session_0001"],
+      "last_review_date": "2026-10-08",
+      "next_review_date": "2026-10-15",
+      "required_dimensions": ["listening"],
+      "skill_states": {"listening": "independent"}
+    },
+    {
       "knowledge_id": "PRE_A1-K002",
       "unit_id": "PRE_A1-U01",
       "state": "independent",
@@ -40,7 +52,9 @@
       "independent_pass_sessions": ["session_0001"],
       "review_pass_sessions": [],
       "last_review_date": "2026-10-08",
-      "next_review_date": "2026-10-11"
+      "next_review_date": "2026-10-11",
+      "required_dimensions": ["speaking"],
+      "skill_states": {"speaking": "independent"}
     },
     {
       "knowledge_id": "PRE_A1-K003",
@@ -50,7 +64,9 @@
       "independent_pass_sessions": ["session_0001"],
       "review_pass_sessions": [],
       "last_review_date": "2026-10-08",
-      "next_review_date": "2026-10-11"
+      "next_review_date": "2026-10-11",
+      "required_dimensions": ["speaking"],
+      "skill_states": {"speaking": "independent"}
     },
     {
       "knowledge_id": "PRE_A1-K004",
@@ -60,7 +76,9 @@
       "independent_pass_sessions": ["session_0001"],
       "review_pass_sessions": ["session_0001"],
       "last_review_date": "2026-10-08",
-      "next_review_date": "2026-10-11"
+      "next_review_date": "2026-10-11",
+      "required_dimensions": ["listening"],
+      "skill_states": {"listening": "independent"}
     },
     {
       "knowledge_id": "PRE_A1-K005",
@@ -70,7 +88,9 @@
       "independent_pass_sessions": [],
       "review_pass_sessions": [],
       "last_review_date": null,
-      "next_review_date": "2026-10-09"
+      "next_review_date": "2026-10-09",
+      "required_dimensions": ["speaking"],
+      "skill_states": {"speaking": "supported"}
     }
   ],
   "skill_weaknesses": {
@@ -198,6 +218,24 @@
       "pronunciation_evidence_basis": "direct_live_audio",
       "prompt_novelty": "unseen",
       "text_shown_before_response": false
+    },
+    {
+      "evidence_id": "evidence_0007",
+      "session_id": "session_0001",
+      "date": "2026-10-08",
+      "unit_id": "PRE_A1-U01",
+      "objective_id": "PRE_A1-O001",
+      "knowledge_ids": ["PRE_A1-K001"],
+      "phase": "check",
+      "modality": "voice",
+      "support_level": "none",
+      "result": "PASS",
+      "learner_response_summary": "对两条未见语音指令用 yes/no 正确回应。",
+      "pronunciation_evidence_basis": "not_applicable",
+      "prompt_novelty": "unseen",
+      "text_shown_before_response": false,
+      "skill": "listening",
+      "listening_check_grade": "strict_unseen"
     }
   ],
   "active_repertoire": [
@@ -222,7 +260,7 @@
       "level_id": "PRE_A1",
       "unit_id": "PRE_A1-U01",
       "completed_phases": ["course_goal", "demonstration", "repeat_after_model", "guided_practice", "independent_expression", "check", "review"],
-      "evidence_ids": ["evidence_0001", "evidence_0002", "evidence_0006"],
+      "evidence_ids": ["evidence_0001", "evidence_0002", "evidence_0006", "evidence_0007"],
       "review_outcomes": [{"item_id": "item_0001", "outcome": "PASS", "evidence_id": "evidence_0006"}],
       "new_item_ids": [],
       "assessment_observations": ["能用已学短句主动请求澄清。"],

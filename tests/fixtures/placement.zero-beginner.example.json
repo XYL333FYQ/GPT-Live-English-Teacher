@@ -1,0 +1,35 @@
+{
+  "timezone": "Asia/Shanghai",
+  "target_english_variety": "General_American",
+  "learner_goal_zh": "先听懂并说出最基本的课堂与日常英语，能用中文求助。",
+  "assessment_confidence": "low",
+  "learner_pace": "normal",
+  "screening_session": {"session_id": "placement_0001", "date": "2026-10-08"},
+  "screening_notes": [
+    "零基础，可用中文回应。",
+    "听到 hello 有反应，但未能主动表达。",
+    "对 listen / say 指令需要中文重复。"
+  ],
+  "screening_evidence": [
+    {
+      "evidence_id": "evidence_placement_0001",
+      "knowledge_ids": ["PRE_A1-K004"],
+      "modality": "voice",
+      "support_level": "none",
+      "result": "PARTIAL",
+      "learner_response_summary": "听到 hello 有反应；对 listen/say 需要中文重复后才动作。",
+      "skill": "listening",
+      "listening_check_grade": "strict_unseen"
+    },
+    {
+      "evidence_id": "evidence_placement_0002",
+      "knowledge_ids": ["PRE_A1-K002"],
+      "modality": "voice",
+      "support_level": "answer_revealed",
+      "result": "PARTIAL",
+      "learner_response_summary": "在给出中文提示后重复了 I don't understand。",
+      "skill": "speaking",
+      "listening_check_grade": "not_applicable"
+    }
+  ]
+}
