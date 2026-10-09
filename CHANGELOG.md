@@ -1,5 +1,78 @@
 # Changelog
 
+## v3.1.2 — Stability freeze
+
+Three confirmed defects, one curriculum blocker, and a systematic end-to-end check.
+No new features; nothing was redesigned.
+
+### Fixed (P0)
+
+- **`B1-U07` could never be completed, so the course could not be finished at B1.**
+  `_objective_passes` decided whether the strict unseen-listening gate applied by
+  searching for the substring `unseen_audio` in the objective's `evidence_requirement`.
+  `B1-O013` is a **speaking** objective ("listen to a new message, then report it back")
+  whose requirement text contains that substring, so the tool demanded
+  `listening_check_grade: strict_unseen` on spoken production. Reproduced by walking all
+  32 units as a compliant learner: `B1-U07` failed with
+  `objectives ['B1-O013'], knowledge ['B1-K025','B1-K026','B1-K027']`. The gate is now
+  mode-aware (`objective_requires_unseen_listening`), so it applies to listening
+  objectives only — all 28 of them — and never to a speaking task built on unseen audio.
+  The walk test now completes all 32 units in prerequisite order.
+- the CLI crashed with a traceback on a damaged or missing profile instead of failing
+  cleanly. `prepare`/`export`/`plan` now report `profile file not found`, an unreadable
+  file, or invalid JSON and exit with status 2 without claiming success.
+
+### Fixed (P1)
+
+- **An objective accepted evidence of the wrong skill.** `_objective_passes` ignored the
+  record's `skill`, so a record explicitly marked `listening` could satisfy an
+  `interaction` objective, and `validate_profile` stayed silent. Reproduced: `PRE_A1-O003`
+  (interaction) counted a `skill: listening` record as a pass. A record whose explicit
+  `skill` contradicts its objective's `mode` is now skipped, credited to **no** dimension
+  (`evidence_skill_dimensions` returns `()`), rejected by validation, and normalized by
+  detaching it from the objective and demoting it to practice while keeping its date,
+  session, stated skill and response summary.
+- **The screening status label disagreed with the actual pass rule.**
+  `screening_verification_status` reported `strict_independent` for a record whose
+  `text_shown_before_response` was `True` while `evidence_is_placement_credit` correctly
+  returned `False`; a listening record with a missing grade was labelled strict as well.
+  Both now derive from one predicate, `placement_condition_gaps`: the label is
+  `strict_independent` **exactly when** the record earns credit, and every gap is named so
+  the reason can be reported. Covered by a matrix test over 19 field combinations.
+- **Profile ordering compared timestamps as strings.** `2026-10-08T23:00:00+08:00`
+  (15:00Z) was treated as newer than `2026-10-08T20:00:00+00:00` (20:00Z), so the wrong
+  "latest" profile could be picked. Ordering now parses real ISO 8601 instants, converts
+  to UTC, then breaks ties by `profile_revision`, then filename. A profile whose
+  `updated_at` is missing, invalid, or carries no offset is reported with its status
+  (`missing_timezone`, `invalid_updated_at`, `invalid_json`, `not_a_profile`) and never
+  outranks a properly timestamped one. When the top candidates are equally new **and
+  differ in content**, the selection refuses and lists them instead of guessing, so older
+  progress is never overwritten. Non-overwriting export is unchanged.
+
+### Added
+
+- `objective_requires_unseen_listening`, `objective_skill`,
+  `evidence_skill_conflicts_with_objective`, `placement_condition_gaps`,
+  `PRACTICE_ONLY_GAPS`, `ambiguous_objective_skill_records`,
+  `downgrade_ambiguous_objective_skill`, `parse_profile_timestamp`.
+- `tests/test_v312_freeze.py` (40 tests): the three defect classes, the full-loop
+  regression (build → prepare → teach → export → reload → continue), idempotence of
+  normalization and export, history preservation, curriculum progressability across all
+  32 units, clean CLI failure, and cross-artifact consistency between the schema enums,
+  the curriculum metadata, the code constants and the four documents.
+
+### Changed
+
+- `normalize_profile` gained one more downgrade step (contradictory records) and stays
+  strictly one-directional: it may demote or detach, never upgrade, and never delete
+  history.
+- `English_Learning_Instructions.md` §17 now states the platform limits explicitly:
+  the Python tools do not run inside GPT Live, a Project file is not a running program,
+  voice transcription cannot prove pronunciation, automated tests cannot prove teaching
+  quality, after Live the profile must be processed in Text Mode, and unknown outcomes
+  stay unknown.
+- test count 116 → 156. No curriculum data change; `curriculum_version` stays `1.1.0`.
+
 ## v3.1.1 — Evidence honesty and segment-level repair
 
 ### Fixed (P0)

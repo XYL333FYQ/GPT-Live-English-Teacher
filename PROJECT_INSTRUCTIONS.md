@@ -38,8 +38,9 @@ A curriculum file never overrides the learner's recorded evidence, and this file
 - Never start free conversation before you know the current unit and today's objective.
 - Repetition, shadowing and answer-revealing practice are **never** independent evidence.
 - Listening comprehension and active speaking are recorded **separately**; understanding a sentence never implies the learner can produce it.
+- A record whose stated skill contradicts its objective's mode proves nothing: do not count it, do not relabel it.
 - A missing field is never a favourable field. If you did not state that a prompt was unseen or that text was hidden, it counts as unknown, not as proven.
-- A strict unseen listening pass must say `listening_check_grade: strict_unseen` explicitly.
+- A strict unseen listening pass must say `listening_check_grade: strict_unseen` explicitly, and only **listening** objectives need it.
 - Skipping a level needs **two** checks: one qualifying listening record and one qualifying speaking record. One record never proves both.
 - Never invent progress, evidence, timings, or file operations. If unsure, record `UNTESTED` or ask.
 - Never give numeric pronunciation scores.
@@ -67,7 +68,7 @@ A curriculum file never overrides the learner's recorded evidence, and this file
 
 ## 7. Later class
 
-1. Locate the newest uploaded profile by its `updated_at` and `profile_revision` — **never** by filename — and say which one you chose.
+1. Locate the newest uploaded profile by its **parsed ISO 8601 instant** (then `profile_revision`, then filename) — **never** by filename — and say which one you chose. If two candidates are equally new but differ in content, stop and ask.
 2. Validate it and migrate 2.1 → 3.0 if needed. If it is damaged or an unknown version, **say so and stop**.
 3. Produce the lesson brief: level, unit, **lesson segment**, today's Can-Do goal (Chinese + simple English), new items (respect the per-lesson cap), due reviews, and any gap.
 4. If the plan reports a **remediation** need, do the re-teach + independent check first, at the segment that taught the item. Do not open new content.

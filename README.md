@@ -26,13 +26,15 @@ The original GPT Live voice lesson, correction, spaced-review, JSON memory, and 
 - a required lesson sequence: **Goal → Demonstration → Repeat → Guided practice → Independent expression → Check → Review**, run as a teaching loop rather than a recited script;
 - Chinese support by default at Pre-A1, reduced as English ability grows;
 - **unit completion = objectives passed + every knowledge item those objectives target independently demonstrated**, which makes "unit complete but next unit locked" impossible to write into a profile;
-- **separate listening and speaking dimensions** per knowledge item: understanding never implies production, and production never implies comprehension at another speed;
+- **separate listening and speaking dimensions** per knowledge item: understanding never implies production, and production never implies comprehension at another speed; an objective only accepts evidence of its own skill, and a contradictory record proves nothing;
 - **multi-lesson units**: letters, numbers, and other heavy items are staged into lesson segments with a per-lesson cap on new material; a weak segment is repaired at that segment, not by repeating the whole unit;
 - **strict placement (hardened in v3.1.1)**: skipping a level requires **one qualifying listening record and one qualifying speaking record**, each covering the level's real requirements. A single integrated record can never prove both;
 - **missing fields are never favourable (v3.1.1)**: an unstated prompt novelty, text exposure, or listening grade is recorded as `unknown` / `null` and credits nothing, so a thin screen can never raise the CEFR level;
-- **graded listening checks**: a strict unseen pass must state `listening_check_grade: strict_unseen` explicitly; an attempt whose text exposure cannot be ruled out is downgraded to practice;
+- **graded listening checks**: a strict unseen pass must state `listening_check_grade: strict_unseen` explicitly, and only listening objectives need it; an attempt whose text exposure cannot be ruled out is downgraded to practice;
+- **status labels match the rules (v3.1.2)**: a screening record is labelled `strict_independent` exactly when it earns credit;
+- **real-time profile ordering (v3.1.2)**: profiles are ordered by parsed ISO 8601 instants converted to UTC, so mixed timezones compare correctly; a missing or invalid timestamp is reported, never preferred, and two equally new profiles with different content stop the selection instead of overwriting progress;
 - strict separation of repetition from independent mastery, and no precise pronunciation claims from speech transcripts;
-- lossless v2.1 migration, non-overwriting export, deterministic `sync` that may downgrade unverifiable records but never upgrades them, and automated integrity tests.
+- lossless v2.1 migration, non-overwriting export, deterministic `sync` that may downgrade unverifiable records but never upgrades them, and automated integrity tests that walk all 32 units end to end.
 
 ## Quick start
 
@@ -137,9 +139,10 @@ English_Learning_Instructions.md   # detailed teaching and data rules
 curriculum/{PRE_A1,A1,A2,B1}.json  # PRE_A1 carries lesson_segments
 schemas/{curriculum,learning-profile}.schema.json
 tools/learning_data.py             # validate / audit / init-profile / prepare / plan / export
-tests/                             # 116 tests, including the 15 acceptance scenarios
+tests/                             # 156 tests, including the 15 acceptance scenarios
   support.py                       # shared two-skill exit-check fixtures
   test_v311_fixes.py               # evidence-honesty regressions
+  test_v312_freeze.py              # stability-freeze regressions
 docs/manual_acceptance.zh-CN.md    # real GPT Live manual acceptance script
 ```
 
@@ -153,7 +156,7 @@ python tools/learning_data.py audit --json
 python -m unittest discover -s tests -v
 ```
 
-The tests execute the JSON Schemas and cover curriculum references, the full prerequisite audit, the seven-phase flow, hardened cross-level placement, unseen-listening evidence and downgrading, per-dimension skill evidence, multi-lesson pacing, v2.1 migration, the deterministic review queue, pronunciation limits, export revalidation, all fifteen acceptance scenarios, and the v3.1.1 evidence-honesty regressions (missing fields are never optimistic, one record cannot prove two skills, remediation targets the segment that taught the gap, the newest profile is chosen by metadata, and the instruction documents agree with each other).
+The tests execute the JSON Schemas and cover curriculum references, the full prerequisite audit, the seven-phase flow, hardened cross-level placement, unseen-listening evidence and downgrading, per-dimension skill evidence, multi-lesson pacing, v2.1 migration, the deterministic review queue, pronunciation limits, export revalidation, all fifteen acceptance scenarios, the v3.1.1 evidence-honesty regressions, and the v3.1.2 freeze suite: objectives only accept their own skill, a screening label matches its rule, profiles are ordered by real UTC instants, all 32 units can be completed in prerequisite order, and the schema, curriculum, code and documents agree with each other.
 
 ## Limitations
 
@@ -164,11 +167,11 @@ The tests execute the JSON Schemas and cover curriculum references, the full pre
 - No audio is stored and no acoustic analysis is performed.
 - B1 current-topic work depends on web search; Pre-A1 and A1 do not depend on news discussion.
 - Automated tests cover the data layer only. Real GPT Live behaviour must be verified with `docs/manual_acceptance.zh-CN.md`.
-- v3.1.1 tightened the rules: profiles that previously passed on missing fields are **downgraded** on the next `Prepare for class` or export (an unverifiable listening pass becomes practice, an unverifiable level skip is withdrawn). That is intentional, not a bug.
+- v3.1.1 / v3.1.2 tightened the rules: profiles that previously passed on missing fields are **downgraded** on the next `Prepare for class` or export (an unverifiable listening pass becomes practice, an unverifiable level skip is withdrawn, a record whose skill contradicted its objective is detached). That is intentional, not a bug.
 
 ## Version and license
 
-- Instruction: **v3.1.1**
+- Instruction: **v3.1.2**
 - Profile schema: **3.0**
 - Curriculum: **1.1.0** (1.0.0 profiles still validate)
 - Instructions, curriculum, documentation, schemas, and example profile use CC BY 4.0 under `LICENSE`, inherited from `loiqy/GPT-Live-English-Coach`.

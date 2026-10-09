@@ -9,7 +9,39 @@ from tools.learning_data import (
     exit_unit_by_level,
     knowledge_required_dimensions,
     level_placement_requirements,
+    objective_requires_unseen_listening,
+    objective_skill,
 )
+
+
+def objective_evidence(
+    unit_id: str,
+    objective: dict,
+    *,
+    evidence_id: str,
+    session_id: str,
+    date_value: str = "2026-10-09",
+) -> dict:
+    """One compliant independent record for an objective, in the right dimension."""
+    unseen_listening = objective_requires_unseen_listening(objective)
+    return {
+        "evidence_id": evidence_id,
+        "session_id": session_id,
+        "date": date_value,
+        "unit_id": unit_id,
+        "objective_id": objective["objective_id"],
+        "knowledge_ids": list(objective["target_knowledge_ids"]),
+        "phase": "check",
+        "modality": "voice",
+        "support_level": "none",
+        "result": "PASS",
+        "learner_response_summary": f"Independent check for {objective['objective_id']}.",
+        "pronunciation_evidence_basis": "not_applicable",
+        "prompt_novelty": "unseen",
+        "text_shown_before_response": False,
+        "skill": objective_skill(objective),
+        "listening_check_grade": "strict_unseen" if unseen_listening else "not_applicable",
+    }
 
 
 def exit_check_records(

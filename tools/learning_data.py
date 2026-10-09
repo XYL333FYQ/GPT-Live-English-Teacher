@@ -11,6 +11,7 @@ from __future__ import annotations
 import argparse
 from copy import deepcopy
 from datetime import date, datetime, timedelta, timezone
+import hashlib
 import json
 from pathlib import Path
 import re
@@ -681,24 +682,96 @@ def evidence_is_independent(evidence: dict[str, Any]) -> bool:
     )
 
 
-def evidence_is_placement_credit(evidence: dict[str, Any]) -> bool:
-    """Formally valid placement evidence for one skill dimension.
+def placement_condition_gaps(evidence: dict[str, Any]) -> tuple[str, ...]:
+    """Independent-check conditions a record does **not** satisfy.
 
-    `skill` must be explicit. The dimension is never inferred from which knowledge
-    ids the record happens to list, because listing a knowledge id proves nothing
-    about whether the learner actually listened to or spoke it.
+    An empty tuple means the record is a genuinely strict, independent placement
+    attempt. Every gap name is explicit so the reason can be reported to the
+    learner instead of silently granting or denying credit.
+
+    This is the single source of truth: `evidence_is_placement_credit` is exactly
+    "no gaps", and `screening_verification_status` can never say
+    `strict_independent` about a record this function rejects.
     """
-    return (
-        evidence.get("phase") == "placement"
-        and evidence.get("objective_id") is None
-        and evidence.get("support_level") in INDEPENDENT_SUPPORT
-        and evidence.get("result") == "PASS"
-        and evidence.get("prompt_novelty") == "unseen"
-        and evidence.get("modality") in {"voice", "mixed"}
-        and evidence.get("text_shown_before_response") is False
-        and evidence.get("skill") in SKILL_DIMENSIONS
-        and bool(evidence.get("knowledge_ids"))
-    )
+    gaps: list[str] = []
+    if evidence.get("phase") != "placement":
+        gaps.append("not_a_placement_record")
+    if evidence.get("objective_id") is not None:
+        gaps.append("targets_an_objective")
+    if evidence.get("result") != "PASS":
+        gaps.append("not_a_pass")
+    if not evidence.get("knowledge_ids"):
+        gaps.append("no_knowledge_ids")
+
+    novelty = evidence.get("prompt_novelty")
+    if novelty in {None, "unknown", "not_applicable"}:
+        gaps.append("prompt_novelty_unknown")
+    elif novelty != "unseen":
+        gaps.append("prompt_rehearsed")
+
+    text_shown = evidence.get("text_shown_before_response")
+    if text_shown is None:
+        gaps.append("text_exposure_unknown")
+    elif text_shown is not False:
+        gaps.append("text_shown")
+
+    if evidence.get("support_level") not in INDEPENDENT_SUPPORT:
+        gaps.append("support_revealing")
+    if evidence.get("modality") not in {"voice", "mixed"}:
+        gaps.append("modality_not_voice")
+
+    skill = placement_evidence_skill(evidence)
+    if skill is None:
+        gaps.append("skill_missing")
+    elif skill == "listening" and not evidence_is_strict_unseen_listening(evidence):
+        grade = evidence.get("listening_check_grade")
+        gaps.append(
+            "listening_grade_practice" if grade == "text_supported_practice" else "listening_grade_not_strict"
+        )
+    return tuple(gaps)
+
+
+#: Gaps that mean "the attempt happened, but only as supported practice".
+PRACTICE_ONLY_GAPS = frozenset(
+    {
+        "support_revealing",
+        "prompt_rehearsed",
+        "modality_not_voice",
+        "text_shown",
+        "listening_grade_practice",
+    }
+)
+
+
+def evidence_is_placement_credit(evidence: dict[str, Any]) -> bool:
+    """Strict placement evidence for exactly one skill dimension.
+
+    `skill` must be explicit, the prompt unseen, the text provably hidden, the
+    support non-revealing, the modality voice or mixed, the result a pass, and a
+    listening record must carry an explicit `strict_unseen` grade. Anything else
+    credits nothing.
+    """
+    return not placement_condition_gaps(evidence)
+
+
+def screening_verification_status(evidence: dict[str, Any]) -> str:
+    """How much a screening record can actually prove.
+
+    - `strict_independent`: no gaps — identical to `evidence_is_placement_credit`.
+    - `practice_only`: the attempt happened with support, a rehearsed prompt,
+      visible text, non-voice modality, or a text-supported listening grade.
+    - `unverified_conditions`: the record does not state the conditions, so
+      nothing can be claimed.
+    - `failed`: the attempt did not succeed.
+    """
+    if evidence.get("result") != "PASS":
+        return "failed"
+    gaps = set(placement_condition_gaps(evidence))
+    if not gaps:
+        return "strict_independent"
+    if gaps & PRACTICE_ONLY_GAPS:
+        return "practice_only"
+    return "unverified_conditions"
 
 
 def placement_evidence_skill(evidence: dict[str, Any]) -> str | None:
@@ -770,17 +843,25 @@ def evidence_skill_dimensions(
     objective it belongs to. It is deliberately **not** inferred from which
     knowledge ids the record lists: a knowledge item being taught as listening or
     speaking material says nothing about what the learner really did.
+
+    A record whose explicit `skill` contradicts its objective's mode is ambiguous,
+    so it demonstrates **no** dimension at all rather than being relabelled.
     """
-    explicit = evidence.get("skill")
-    if explicit in SKILL_DIMENSIONS:
-        return (explicit,)
     objective_id = evidence.get("objective_id")
+    objective: dict[str, Any] | None = None
     if objective_id and curricula:
         for document in curricula:
             for unit in document["units"]:
-                for objective in unit["objectives"]:
-                    if objective["objective_id"] == objective_id:
-                        return (MODE_TO_SKILL[objective["mode"]],)
+                for candidate in unit["objectives"]:
+                    if candidate["objective_id"] == objective_id:
+                        objective = candidate
+    explicit = evidence.get("skill")
+    if objective is not None and explicit in SKILL_DIMENSIONS:
+        return (explicit,) if explicit == objective_skill(objective) else ()
+    if explicit in SKILL_DIMENSIONS:
+        return (explicit,)
+    if objective is not None:
+        return (objective_skill(objective),)
     return ()
 
 
@@ -941,11 +1022,42 @@ def knowledge_mastery_satisfied(
 # ---------------------------------------------------------------------------
 
 
+def objective_skill(objective: dict[str, Any]) -> str:
+    """Skill dimension an objective actually requires."""
+    return MODE_TO_SKILL[objective["mode"]]
+
+
+def objective_requires_unseen_listening(objective: dict[str, Any]) -> bool:
+    """Whether the strict unseen-listening gate applies to this objective.
+
+    The gate belongs to **listening** objectives. A speaking objective may still
+    describe a task built on unseen audio (for example "report back after hearing a
+    new message"), but its evidence is spoken production, so demanding a
+    `listening_check_grade` on it would make the objective impossible to satisfy and
+    would block the whole unit.
+    """
+    return objective["mode"] == "listening" and "unseen_audio" in objective["evidence_requirement"]
+
+
+def evidence_skill_conflicts_with_objective(evidence: dict[str, Any], objective: dict[str, Any]) -> bool:
+    """True when a record's explicit `skill` contradicts the objective's mode.
+
+    Listening objectives may only be satisfied by listening evidence; speaking and
+    interaction objectives only by active-production evidence. A contradictory
+    record is ambiguous data: it is neither counted as a pass nor credited to a
+    dimension, and it is never relabelled to whichever value would be favourable.
+    """
+    explicit = evidence.get("skill")
+    return explicit in SKILL_DIMENSIONS and explicit != objective_skill(objective)
+
+
 def _objective_passes(profile: dict[str, Any], unit: dict[str, Any], objective: dict[str, Any]) -> set[str]:
-    unseen_listening = "unseen_audio" in objective["evidence_requirement"]
+    unseen_listening = objective_requires_unseen_listening(objective)
     passes: set[str] = set()
     for entry in profile.get("practice_evidence", []):
         if entry.get("unit_id") != unit["unit_id"] or entry.get("objective_id") != objective["objective_id"]:
+            continue
+        if evidence_skill_conflicts_with_objective(entry, objective):
             continue
         if not evidence_is_independent(entry):
             continue
@@ -1426,7 +1538,7 @@ def unverified_listening_records(
         if not objective_id or objective_id not in objectives:
             continue
         _unit_id, objective = objectives[objective_id]
-        if "unseen_audio" not in objective["evidence_requirement"]:
+        if not objective_requires_unseen_listening(objective):
             continue
         if evidence_is_unseen_listening(entry):
             continue
@@ -1455,6 +1567,47 @@ def downgrade_unverified_listening_evidence(
         entry["notes"] = (
             f"{notes} | v3.1.1: downgraded to listening practice - the strict check "
             "conditions were never verified (re-run the check to earn credit)."
+        ).strip(" |")
+        changed.append(entry["evidence_id"])
+    return changed
+
+
+def ambiguous_objective_skill_records(
+    profile: dict[str, Any], curricula: Sequence[dict[str, Any]]
+) -> list[dict[str, Any]]:
+    """Records whose explicit `skill` contradicts the objective they are filed under."""
+    _units, objectives, _knowledge, _levels, _owner = _curriculum_indexes(curricula)
+    flagged: list[dict[str, Any]] = []
+    for entry in profile.get("practice_evidence", []):
+        objective_id = entry.get("objective_id")
+        if not objective_id or objective_id not in objectives:
+            continue
+        _unit_id, objective = objectives[objective_id]
+        if evidence_skill_conflicts_with_objective(entry, objective):
+            flagged.append(entry)
+    return flagged
+
+
+def downgrade_ambiguous_objective_skill(
+    profile: dict[str, Any], curricula: Sequence[dict[str, Any]]
+) -> list[str]:
+    """Detach contradictory records from their objective and demote them to practice.
+
+    The record is ambiguous, so it may not prove the objective and may not carry a
+    favourable skill label. Its id, date, session, stated skill and response summary
+    are preserved; only the objective link and the independent-check phase are
+    dropped, and the reason is written into the record.
+    """
+    changed: list[str] = []
+    for entry in ambiguous_objective_skill_records(profile, curricula):
+        notes = str(entry.get("notes", "")).strip()
+        entry["objective_id"] = None
+        if entry.get("phase") in INDEPENDENT_PHASES:
+            entry["phase"] = "guided_practice"
+        entry["notes"] = (
+            f"{notes} | v3.1.2: detached from its objective - the stated skill "
+            f"({entry.get('skill')!r}) contradicted the objective's mode, so this attempt "
+            "counts as practice only."
         ).strip(" |")
         changed.append(entry["evidence_id"])
     return changed
@@ -1493,10 +1646,22 @@ def normalize_profile(
 ) -> dict[str, Any]:
     """Bring a profile to the current rules without ever inventing evidence.
 
-    Steps, in order: demote unverifiable listening passes to practice, drop
-    placement credit the strict rules cannot confirm, rebuild every derived
-    knowledge state from evidence, then recompute the course position.
+    Steps, in order: detach records whose stated skill contradicts their objective,
+    demote unverifiable listening passes to practice, drop placement credit the
+    strict rules cannot confirm, rebuild every derived knowledge state from evidence,
+    then recompute the course position. Every change is recorded in
+    `migration_history`; nothing is upgraded and no history is deleted.
     """
+    ambiguous = downgrade_ambiguous_objective_skill(profile, curricula)
+    if ambiguous:
+        profile.setdefault("migration_history", []).append(
+            {
+                "from_version": "3.1.1",
+                "to_version": "3.1.2",
+                "reason": "records whose skill contradicted their objective were detached and demoted",
+                "downgraded_evidence_ids": ambiguous,
+            }
+        )
     downgraded_listening = downgrade_unverified_listening_evidence(profile, curricula)
     if downgraded_listening:
         profile.setdefault("migration_history", []).append(
@@ -2087,7 +2252,13 @@ def validate_profile(
                     unknown_targets = set(evidence.get("knowledge_ids", [])) - set(objective["target_knowledge_ids"])
                     if unknown_targets:
                         errors.append(f"{evidence_id}: knowledge is outside objective targets {sorted(unknown_targets)}")
-                    if "unseen_audio" in objective["evidence_requirement"] and evidence.get("result") == "PASS":
+                    if evidence_skill_conflicts_with_objective(evidence, objective):
+                        errors.append(
+                            f"{evidence_id}: skill {evidence.get('skill')!r} contradicts objective "
+                            f"{objective_id} mode {objective['mode']!r} (needs {objective_skill(objective)!r}); "
+                            "the record is ambiguous and cannot prove this objective"
+                        )
+                    if objective_requires_unseen_listening(objective) and evidence.get("result") == "PASS":
                         grade = evidence.get("listening_check_grade")
                         if grade is None:
                             errors.append(
@@ -2443,60 +2614,138 @@ def _skill_dimension_errors(
 # ---------------------------------------------------------------------------
 
 
-def profile_sort_key(path: Path) -> tuple[str, int, str]:
-    """Rank a profile file by its own metadata, never by its filename."""
+def parse_profile_timestamp(value: Any) -> tuple[datetime | None, bool]:
+    """Parse a profile timestamp into UTC.
+
+    Returns `(moment, offset_known)`. `offset_known` is False when the value is
+    missing, invalid, or carries no timezone offset, because such a value cannot be
+    placed reliably on a timeline against profiles from other timezones.
+    """
+    if not isinstance(value, str) or not value.strip():
+        return None, False
+    text = value.strip()
+    if text.endswith(("Z", "z")):
+        text = f"{text[:-1]}+00:00"
     try:
-        data = load_json(path)
-    except (OSError, json.JSONDecodeError):
-        return ("", 0, path.name)
+        parsed = datetime.fromisoformat(text)
+    except ValueError:
+        return None, False
+    if parsed.tzinfo is None:
+        return parsed.replace(tzinfo=timezone.utc), False
+    return parsed.astimezone(timezone.utc), True
+
+
+def _read_profile_candidate(path: Path) -> dict[str, Any]:
+    """Describe one candidate file without ever guessing about it."""
+    entry: dict[str, Any] = {
+        "path": str(path),
+        "filename": path.name,
+        "updated_at": None,
+        "profile_revision": None,
+        "is_profile": False,
+        "offset_known": False,
+        "status": "ok",
+        "content_hash": None,
+    }
+    try:
+        raw = path.read_bytes()
+    except OSError:
+        entry["status"] = "unreadable"
+        return entry
+    entry["content_hash"] = hashlib.sha256(raw).hexdigest()
+    try:
+        data = json.loads(raw.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError):
+        entry["status"] = "invalid_json"
+        return entry
     if not isinstance(data, dict) or "current_course_position" not in data:
-        return ("", 0, path.name)
+        entry["status"] = "not_a_profile"
+        return entry
+
+    entry["is_profile"] = True
+    moment, offset_known = parse_profile_timestamp(data.get("updated_at"))
+    entry["updated_at"] = data.get("updated_at")
+    entry["offset_known"] = offset_known
+    if moment is None:
+        entry["status"] = "invalid_updated_at"
+    elif not offset_known:
+        entry["status"] = "missing_timezone"
     try:
-        revision = int(data.get("profile_revision", 0))
+        entry["profile_revision"] = int(data.get("profile_revision", 0))
     except (TypeError, ValueError):
-        revision = 0
-    return (str(data.get("updated_at", "")), revision, path.name)
+        entry["profile_revision"] = 0
+        entry["status"] = "invalid_revision"
+    entry["moment"] = moment
+    return entry
+
+
+def profile_sort_key(path: Path) -> tuple[int, int, str, int, str]:
+    """Order candidates by real instant, then revision, then filename.
+
+    The tuple is `(is_profile, offset_known, utc_instant, profile_revision, filename)`.
+    `offset_known` is 0 when `updated_at` is missing, invalid, or carries no timezone
+    offset: such a profile can never outrank one that can be placed on a timeline,
+    because "newest" would then be a guess.
+    """
+    entry = _read_profile_candidate(path)
+    moment = entry.get("moment")
+    return (
+        1 if entry["is_profile"] else 0,
+        1 if entry["offset_known"] else 0,
+        moment.isoformat() if moment else "",
+        entry["profile_revision"] or 0,
+        path.name,
+    )
 
 
 def select_latest_profile(
     directory: Path, pattern: str = "*.json"
 ) -> tuple[Path, list[dict[str, Any]]]:
-    """Choose the newest learner profile by `updated_at` and `profile_revision`.
+    """Choose the newest learner profile from its own metadata.
 
-    The filename is only a tie-breaker. Candidates that do not parse as a learner
-    profile are reported, never silently chosen.
+    Ordering uses parsed ISO 8601 instants (so mixed timezones compare correctly),
+    then `profile_revision`, then the filename. A profile whose `updated_at` has no
+    offset is reported but never preferred over a properly timestamped one. When the
+    top candidates are equally new *and* have different content, the choice is
+    ambiguous: this refuses rather than silently overwriting older progress.
     """
     candidates = sorted(path for path in Path(directory).glob(pattern) if path.is_file())
-    ranked: list[dict[str, Any]] = []
-    for path in candidates:
-        updated_at, revision, name = profile_sort_key(path)
-        ranked.append(
-            {
-                "path": str(path),
-                "filename": name,
-                "updated_at": updated_at or None,
-                "profile_revision": revision or None,
-                "is_profile": bool(updated_at),
-            }
-        )
+    ranked = [_read_profile_candidate(path) for path in candidates]
     profiles = [entry for entry in ranked if entry["is_profile"]]
     if not profiles:
         raise ValidationError(
             [
                 f"no learner profile found in {directory} (looked at {len(candidates)} file(s)); "
-                "upload the latest English_Learning_Profile*.json"
+                "upload the latest English_Learning_Profile*.json. "
+                f"files seen: {[entry['filename'] + ':' + entry['status'] for entry in ranked]}"
             ]
         )
-    ranked.sort(
-        key=lambda entry: (
-            entry["is_profile"],
-            entry["updated_at"] or "",
-            entry["profile_revision"] or 0,
-            entry["filename"],
-        ),
-        reverse=True,
-    )
-    return Path(ranked[0]["path"]), ranked
+    ranked.sort(key=lambda entry: profile_sort_key(Path(entry["path"])), reverse=True)
+    top = ranked[0]
+    ties = [
+        entry
+        for entry in ranked[1:]
+        if entry["is_profile"]
+        and entry["offset_known"] == top["offset_known"]
+        and entry["moment"] == top["moment"]
+        and entry["profile_revision"] == top["profile_revision"]
+    ]
+    conflicting = [
+        entry for entry in ties if entry["content_hash"] != top["content_hash"]
+    ]
+    if conflicting:
+        raise ValidationError(
+            [
+                "cannot tell which profile is newest: "
+                f"{[top['filename']] + [entry['filename'] for entry in conflicting]} share the same "
+                f"updated_at ({top['updated_at']}) and profile_revision ({top['profile_revision']}) "
+                "but differ in content. Re-export the profile you want to continue from, or keep only "
+                "one of them, so older progress is never overwritten by a guess."
+            ]
+        )
+    for entry in ranked:
+        entry.pop("moment", None)
+    return Path(top["path"]), ranked
 
 
 def next_export_path(source_path: Path, export_date: date, output_dir: Path | None = None) -> Path:
@@ -2542,35 +2791,6 @@ def export_profile(
 # ---------------------------------------------------------------------------
 # First profile creation
 # ---------------------------------------------------------------------------
-
-
-def screening_verification_status(evidence: dict[str, Any]) -> str:
-    """How much a screening record can actually prove.
-
-    - `strict_independent`: every condition of an independent check is explicit.
-    - `practice_only`: the attempt happened but support or conditions were not
-      independent, so it may only be recorded as practice.
-    - `unverified_conditions`: the record does not state whether the prompt was
-      unseen or whether text was visible, so nothing can be claimed.
-    - `failed`: the attempt did not succeed.
-    """
-    if evidence.get("result") != "PASS":
-        return "failed"
-    if evidence.get("prompt_novelty") in {None, "unknown", "not_applicable"}:
-        return "unverified_conditions"
-    if evidence.get("text_shown_before_response") is None:
-        return "unverified_conditions"
-    if evidence.get("support_level") not in INDEPENDENT_SUPPORT:
-        return "practice_only"
-    if evidence.get("prompt_novelty") != "unseen":
-        return "practice_only"
-    if evidence.get("modality") not in {"voice", "mixed"}:
-        return "practice_only"
-    if placement_evidence_skill(evidence) is None:
-        return "unverified_conditions"
-    if placement_evidence_skill(evidence) == "listening" and not evidence_is_strict_unseen_listening(evidence):
-        return "unverified_conditions"
-    return "strict_independent"
 
 
 def init_profile(
@@ -2846,9 +3066,19 @@ def main(argv: Sequence[str] | None = None) -> int:
                     flag = "->" if entry["path"] == str(profile_path) else "  "
                     print(
                         f"  {flag} {entry['filename']}  updated_at={entry['updated_at']} "
-                        f"revision={entry['profile_revision']} profile={entry['is_profile']}"
+                        f"timezone_known={entry['offset_known']} revision={entry['profile_revision']} "
+                        f"status={entry['status']}"
                     )
-        profile = load_json(profile_path)
+        try:
+            profile = load_json(profile_path)
+        except FileNotFoundError:
+            raise ValidationError([f"profile file not found: {profile_path}"])
+        except OSError as error:
+            raise ValidationError([f"could not read {profile_path}: {error}"])
+        except json.JSONDecodeError as error:
+            raise ValidationError(
+                [f"{profile_path} is not valid JSON ({error}); the profile was not loaded, so nothing was validated"]
+            )
         version = str(profile.get("schema_version", ""))
         if version != "3.0":
             profile = migrate_profile(profile)
