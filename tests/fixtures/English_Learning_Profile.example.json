@@ -1,63 +1,245 @@
 {
-  "schema_version": "2.1",
+  "schema_version": "3.0",
   "profile_revision": 1,
-  "created_at": "2026-07-11T20:00:00-04:00",
-  "updated_at": "2026-07-11T20:00:00-04:00",
-  "timezone": "America/New_York",
+  "created_at": "2026-10-08T19:00:00+08:00",
+  "updated_at": "2026-10-08T19:30:00+08:00",
+  "timezone": "Asia/Shanghai",
   "target_english_variety": "General_American",
   "scientific_assessment": {
     "assessment_status": "provisional",
-    "overall_cefr": "B2",
-    "cefr_range": [
-      "B1+",
-      "B2+"
-    ],
-    "confidence": "low",
-    "ielts_dimensions": {
-      "fluency_and_coherence": 6.5,
-      "lexical_resource": 6.0,
-      "grammatical_range_and_accuracy": 6.5,
-      "pronunciation": 7.0
-    },
+    "overall_cefr": "PRE_A1",
+    "cefr_range": ["PRE_A1"],
+    "confidence": "medium",
     "last_calibrated_session_id": "session_0001",
-    "current_blindspots": [
-      "Literal translation from Chinese",
-      "Over-formal phrasing in casual conversation"
+    "assessment_basis": "short independent listening and speaking screening",
+    "pronunciation_assessment": "qualitative_only"
+  },
+  "learning_track": {
+    "curriculum_id": "gpt-live-english-foundations",
+    "curriculum_version": "1.0.0",
+    "current_level": "PRE_A1",
+    "mode": "structured_curriculum",
+    "placement_basis": "initial_screening",
+    "support_language": "zh-CN"
+  },
+  "current_course_position": {
+    "level_id": "PRE_A1",
+    "unit_id": "PRE_A1-U02",
+    "unit_status": "in_progress",
+    "lesson_phase": "guided_practice",
+    "unlocked_unit_ids": ["PRE_A1-U01", "PRE_A1-U02"],
+    "completed_unit_ids": ["PRE_A1-U01"],
+    "placement_credited_unit_ids": []
+  },
+  "knowledge_state": [
+    {
+      "knowledge_id": "PRE_A1-K002",
+      "unit_id": "PRE_A1-U01",
+      "state": "independent",
+      "evidence_ids": ["evidence_0002"],
+      "independent_pass_sessions": ["session_0001"],
+      "review_pass_sessions": [],
+      "last_review_date": "2026-10-08",
+      "next_review_date": "2026-10-11"
+    },
+    {
+      "knowledge_id": "PRE_A1-K003",
+      "unit_id": "PRE_A1-U01",
+      "state": "independent",
+      "evidence_ids": ["evidence_0006"],
+      "independent_pass_sessions": ["session_0001"],
+      "review_pass_sessions": [],
+      "last_review_date": "2026-10-08",
+      "next_review_date": "2026-10-11"
+    },
+    {
+      "knowledge_id": "PRE_A1-K004",
+      "unit_id": "PRE_A1-U01",
+      "state": "independent",
+      "evidence_ids": ["evidence_0001"],
+      "independent_pass_sessions": ["session_0001"],
+      "review_pass_sessions": ["session_0001"],
+      "last_review_date": "2026-10-08",
+      "next_review_date": "2026-10-11"
+    },
+    {
+      "knowledge_id": "PRE_A1-K005",
+      "unit_id": "PRE_A1-U02",
+      "state": "supported",
+      "evidence_ids": ["evidence_0003", "evidence_0005"],
+      "independent_pass_sessions": [],
+      "review_pass_sessions": [],
+      "last_review_date": null,
+      "next_review_date": "2026-10-09"
+    }
+  ],
+  "skill_weaknesses": {
+    "listening": [
+      {
+        "weakness_id": "listening_0001",
+        "description": "在没有文字时容易混淆陌生姓名。",
+        "status": "active",
+        "evidence_ids": ["evidence_0004"]
+      }
+    ],
+    "speaking": [
+      {
+        "weakness_id": "speaking_0001",
+        "description": "没有句型提示时尚不能稳定主动问候。",
+        "status": "active",
+        "evidence_ids": ["evidence_0005"]
+      }
+    ],
+    "pronunciation": [
+      {
+        "weakness_id": "pronunciation_0001",
+        "feature": "word_intelligibility",
+        "observation": "直接 Live 音频中，第一次说 hello 时需要重复一次才听懂。",
+        "status": "active",
+        "evidence_basis": "direct_live_audio",
+        "confidence": "low",
+        "evidence_ids": ["evidence_0003"]
+      }
     ]
   },
+  "practice_evidence": [
+    {
+      "evidence_id": "evidence_0001",
+      "session_id": "session_0001",
+      "date": "2026-10-08",
+      "unit_id": "PRE_A1-U01",
+      "objective_id": "PRE_A1-O001",
+      "knowledge_ids": ["PRE_A1-K004"],
+      "phase": "check",
+      "modality": "voice",
+      "support_level": "none",
+      "result": "PASS",
+      "learner_response_summary": "在无文字情况下正确执行三条新的单步指令。",
+      "pronunciation_evidence_basis": "not_applicable",
+      "prompt_novelty": "unseen",
+      "text_shown_before_response": false
+    },
+    {
+      "evidence_id": "evidence_0002",
+      "session_id": "session_0001",
+      "date": "2026-10-08",
+      "unit_id": "PRE_A1-U01",
+      "objective_id": "PRE_A1-O002",
+      "knowledge_ids": ["PRE_A1-K002"],
+      "phase": "independent_expression",
+      "modality": "voice",
+      "support_level": "non_revealing_context",
+      "result": "PASS",
+      "learner_response_summary": "在教练故意给出陌生指令时主动表示没有听懂。",
+      "pronunciation_evidence_basis": "direct_live_audio",
+      "prompt_novelty": "unseen",
+      "text_shown_before_response": false
+    },
+    {
+      "evidence_id": "evidence_0003",
+      "session_id": "session_0002",
+      "date": "2026-10-08",
+      "unit_id": "PRE_A1-U02",
+      "objective_id": "PRE_A1-O003",
+      "knowledge_ids": ["PRE_A1-K005"],
+      "phase": "repeat_after_model",
+      "modality": "voice",
+      "support_level": "model_immediately_before",
+      "result": "PRACTICED",
+      "learner_response_summary": "跟读 hello 和 goodbye。",
+      "pronunciation_evidence_basis": "direct_live_audio",
+      "prompt_novelty": "rehearsed",
+      "text_shown_before_response": false
+    },
+    {
+      "evidence_id": "evidence_0004",
+      "session_id": "session_0002",
+      "date": "2026-10-08",
+      "unit_id": "PRE_A1-U02",
+      "objective_id": "PRE_A1-O004",
+      "knowledge_ids": ["PRE_A1-K007"],
+      "phase": "check",
+      "modality": "voice",
+      "support_level": "none",
+      "result": "FAIL",
+      "learner_response_summary": "两次陌生姓名听辨中均需文字确认。",
+      "pronunciation_evidence_basis": "not_applicable",
+      "prompt_novelty": "unseen",
+      "text_shown_before_response": false
+    },
+    {
+      "evidence_id": "evidence_0005",
+      "session_id": "session_0002",
+      "date": "2026-10-08",
+      "unit_id": "PRE_A1-U02",
+      "objective_id": "PRE_A1-O003",
+      "knowledge_ids": ["PRE_A1-K005"],
+      "phase": "guided_practice",
+      "modality": "voice",
+      "support_level": "sentence_starter",
+      "result": "PARTIAL",
+      "learner_response_summary": "在给出句首后完成问候。",
+      "pronunciation_evidence_basis": "direct_live_audio",
+      "prompt_novelty": "rehearsed",
+      "text_shown_before_response": false
+    },
+    {
+      "evidence_id": "evidence_0006",
+      "session_id": "session_0001",
+      "date": "2026-10-08",
+      "unit_id": "PRE_A1-U01",
+      "objective_id": "PRE_A1-O002",
+      "knowledge_ids": ["PRE_A1-K003"],
+      "phase": "independent_expression",
+      "modality": "voice",
+      "support_level": "non_revealing_context",
+      "result": "PASS",
+      "learner_response_summary": "在另一条陌生指令后主动要求再说一遍。",
+      "pronunciation_evidence_basis": "direct_live_audio",
+      "prompt_novelty": "unseen",
+      "text_shown_before_response": false
+    }
+  ],
   "active_repertoire": [
     {
       "item_id": "item_0001",
-      "item": "It's on the tip of my tongue.",
-      "item_type": "chunk_&_idiom",
-      "stage": 0,
+      "item": "Please say it again.",
+      "item_type": "core_vocabulary",
+      "stage": 1,
       "status": "active",
-      "next_review_date": "2026-07-12",
-      "last_review_date": null,
-      "last_outcome": null,
+      "next_review_date": "2026-10-11",
+      "last_review_date": "2026-10-08",
+      "last_outcome": "PASS",
       "lapse_count": 0,
       "selection_defer_once": false,
-      "context_log": [
-        "Placement: paused awkwardly when unable to recall a word."
-      ]
+      "context_log": ["PRE_A1-U01: independently used after an unfamiliar instruction."]
     }
   ],
   "session_log": [
     {
       "session_id": "session_0001",
-      "date": "2026-07-11",
-      "topic": "Placement Test",
-      "verified_topic_brief": null,
+      "date": "2026-10-08",
+      "level_id": "PRE_A1",
+      "unit_id": "PRE_A1-U01",
+      "completed_phases": ["course_goal", "demonstration", "repeat_after_model", "guided_practice", "independent_expression", "check", "review"],
+      "evidence_ids": ["evidence_0001", "evidence_0002", "evidence_0006"],
+      "review_outcomes": [{"item_id": "item_0001", "outcome": "PASS", "evidence_id": "evidence_0006"}],
+      "new_item_ids": [],
+      "assessment_observations": ["能用已学短句主动请求澄清。"],
+      "verified_topic_brief": null
+    },
+    {
+      "session_id": "session_0002",
+      "date": "2026-10-08",
+      "level_id": "PRE_A1",
+      "unit_id": "PRE_A1-U02",
+      "completed_phases": ["course_goal", "demonstration", "repeat_after_model", "guided_practice", "check"],
+      "evidence_ids": ["evidence_0003", "evidence_0004", "evidence_0005"],
       "review_outcomes": [],
-      "new_item_ids": [
-        "item_0001"
-      ],
-      "assessment_observations": [
-        "Maintained a coherent narrative but relied on literal translation under pressure."
-      ],
-      "pragmatic_blindspots_noticed": [
-        "Used formal written phrasing in casual conversation."
-      ]
+      "new_item_ids": [],
+      "assessment_observations": ["独立问候尚未形成。"],
+      "verified_topic_brief": null
     }
-  ]
+  ],
+  "migration_history": []
 }

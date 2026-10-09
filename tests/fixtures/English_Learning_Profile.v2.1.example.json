@@ -1,0 +1,53 @@
+{
+  "schema_version": "2.1",
+  "profile_revision": 1,
+  "created_at": "2026-07-11T20:00:00-04:00",
+  "updated_at": "2026-07-11T20:00:00-04:00",
+  "timezone": "America/New_York",
+  "target_english_variety": "General_American",
+  "scientific_assessment": {
+    "assessment_status": "provisional",
+    "overall_cefr": "B2",
+    "cefr_range": ["B1+", "B2+"],
+    "confidence": "low",
+    "ielts_dimensions": {
+      "fluency_and_coherence": 6.5,
+      "lexical_resource": 6.0,
+      "grammatical_range_and_accuracy": 6.5,
+      "pronunciation": 7.0
+    },
+    "last_calibrated_session_id": "session_0001",
+    "current_blindspots": [
+      "Literal translation from Chinese",
+      "Over-formal phrasing in casual interaction"
+    ]
+  },
+  "active_repertoire": [
+    {
+      "item_id": "item_0001",
+      "item": "It's on the tip of my tongue.",
+      "item_type": "chunk_&_idiom",
+      "stage": 0,
+      "status": "active",
+      "next_review_date": "2026-07-12",
+      "last_review_date": null,
+      "last_outcome": null,
+      "lapse_count": 0,
+      "selection_defer_once": false,
+      "context_log": ["Placement: paused awkwardly when unable to recall a word."]
+    }
+  ],
+  "session_log": [
+    {
+      "session_id": "session_0001",
+      "date": "2026-07-11",
+      "topic": "Placement Test",
+      "verified_topic_brief": null,
+      "review_outcomes": [],
+      "new_item_ids": ["item_0001"],
+      "assessment_observations": ["Maintained a coherent narrative but relied on literal translation under pressure."],
+      "pragmatic_blindspots_noticed": ["Used formal written phrasing in casual conversation."]
+    }
+  ],
+  "compatible_extension": {"preserve_me": true}
+}

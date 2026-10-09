@@ -1,0 +1,146 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "GPT Live English Coach Learning Profile v3.0",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["schema_version", "profile_revision", "created_at", "updated_at", "timezone", "target_english_variety", "scientific_assessment", "learning_track", "current_course_position", "knowledge_state", "skill_weaknesses", "practice_evidence", "active_repertoire", "session_log"],
+  "properties": {
+    "schema_version": {"const": "3.0"},
+    "profile_revision": {"type": "integer", "minimum": 1},
+    "created_at": {"type": "string", "minLength": 1},
+    "updated_at": {"type": "string", "minLength": 1},
+    "timezone": {"type": "string", "minLength": 1},
+    "target_english_variety": {"type": "string", "minLength": 1},
+    "scientific_assessment": {"type": "object", "additionalProperties": true},
+    "learning_track": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["curriculum_id", "curriculum_version", "current_level", "mode", "placement_basis", "support_language"],
+      "properties": {
+        "curriculum_id": {"type": "string", "minLength": 1},
+        "curriculum_version": {"type": "string", "minLength": 1},
+        "current_level": {"enum": ["PRE_A1", "A1", "A2", "B1", "B2", "C1", "C2"]},
+        "mode": {"enum": ["structured_curriculum", "legacy_conversation"]},
+        "placement_basis": {"enum": ["initial_screening", "profile_migration", "learner_choice", "independent_level_check"]},
+        "support_language": {"type": ["string", "null"]}
+      }
+    },
+    "current_course_position": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["level_id", "unit_id", "unit_status", "lesson_phase", "unlocked_unit_ids", "completed_unit_ids", "placement_credited_unit_ids"],
+      "properties": {
+        "level_id": {"enum": ["PRE_A1", "A1", "A2", "B1", "B2", "C1", "C2"]},
+        "unit_id": {"type": ["string", "null"]},
+        "unit_status": {"enum": ["not_started", "in_progress", "completed", "mastered", "needs_curriculum_mapping", "not_applicable"]},
+        "lesson_phase": {"enum": [null, "course_goal", "demonstration", "repeat_after_model", "guided_practice", "independent_expression", "check", "review"]},
+        "unlocked_unit_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
+        "completed_unit_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
+        "placement_credited_unit_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string"}}
+      }
+    },
+    "knowledge_state": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["knowledge_id", "unit_id", "state", "evidence_ids", "independent_pass_sessions", "review_pass_sessions", "last_review_date", "next_review_date"],
+        "properties": {
+          "knowledge_id": {"type": "string", "minLength": 1},
+          "unit_id": {"type": "string", "minLength": 1},
+          "state": {"enum": ["not_started", "introduced", "supported", "independent", "mastered", "placement_credited"]},
+          "evidence_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
+          "independent_pass_sessions": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
+          "review_pass_sessions": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
+          "last_review_date": {"type": ["string", "null"], "pattern": "^\\d{4}-\\d{2}-\\d{2}$"},
+          "next_review_date": {"type": ["string", "null"], "pattern": "^\\d{4}-\\d{2}-\\d{2}$"}
+        }
+      }
+    },
+    "skill_weaknesses": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["listening", "speaking", "pronunciation"],
+      "properties": {
+        "listening": {"type": "array", "items": {"$ref": "#/$defs/weakness"}},
+        "speaking": {"type": "array", "items": {"$ref": "#/$defs/weakness"}},
+        "pronunciation": {"type": "array", "items": {"$ref": "#/$defs/pronunciationWeakness"}}
+      }
+    },
+    "practice_evidence": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/evidence"}
+    },
+    "active_repertoire": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": ["item_id", "item", "item_type", "stage", "status", "next_review_date", "last_review_date", "last_outcome", "lapse_count", "selection_defer_once"],
+        "properties": {
+          "item_id": {"type": "string", "minLength": 1},
+          "item": {"type": "string", "minLength": 1},
+          "item_type": {"type": "string", "minLength": 1},
+          "stage": {"type": "integer", "minimum": 0, "maximum": 5},
+          "status": {"enum": ["active", "mastered"]},
+          "next_review_date": {"type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$"},
+          "last_review_date": {"type": ["string", "null"], "pattern": "^\\d{4}-\\d{2}-\\d{2}$"},
+          "last_outcome": {"enum": [null, "PASS", "PARTIAL", "FAIL"]},
+          "lapse_count": {"type": "integer", "minimum": 0},
+          "selection_defer_once": {"type": "boolean"}
+        }
+      }
+    },
+    "session_log": {"type": "array", "items": {"type": "object", "additionalProperties": true}},
+    "migration_history": {"type": "array", "items": {"type": "object", "additionalProperties": true}}
+  },
+  "$defs": {
+    "weakness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["weakness_id", "description", "status", "evidence_ids"],
+      "properties": {
+        "weakness_id": {"type": "string", "minLength": 1},
+        "description": {"type": "string", "minLength": 1},
+        "status": {"enum": ["active", "improving", "resolved"]},
+        "evidence_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string"}}
+      }
+    },
+    "pronunciationWeakness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["weakness_id", "feature", "observation", "status", "evidence_basis", "confidence", "evidence_ids"],
+      "properties": {
+        "weakness_id": {"type": "string", "minLength": 1},
+        "feature": {"enum": ["word_intelligibility", "sound_contrast", "word_stress", "sentence_stress", "rhythm", "linking", "intonation", "other"]},
+        "observation": {"type": "string", "minLength": 1},
+        "status": {"enum": ["active", "improving", "resolved", "not_assessed"]},
+        "evidence_basis": {"enum": ["direct_live_audio", "transcript_only", "not_assessed"]},
+        "confidence": {"enum": ["low", "medium", "high", "not_assessed"]},
+        "evidence_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string"}}
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["evidence_id", "session_id", "date", "unit_id", "objective_id", "knowledge_ids", "phase", "modality", "support_level", "result", "learner_response_summary", "pronunciation_evidence_basis", "prompt_novelty", "text_shown_before_response"],
+      "properties": {
+        "evidence_id": {"type": "string", "minLength": 1},
+        "session_id": {"type": "string", "minLength": 1},
+        "date": {"type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$"},
+        "unit_id": {"type": ["string", "null"]},
+        "objective_id": {"type": ["string", "null"]},
+        "knowledge_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string"}},
+        "phase": {"enum": ["placement", "course_goal", "demonstration", "repeat_after_model", "guided_practice", "independent_expression", "check", "review"]},
+        "modality": {"enum": ["voice", "text", "mixed"]},
+        "support_level": {"enum": ["none", "non_revealing_context", "choice_or_visual", "sentence_starter", "answer_revealed", "model_immediately_before"]},
+        "result": {"enum": ["PASS", "PARTIAL", "FAIL", "UNTESTED", "PRACTICED"]},
+        "learner_response_summary": {"type": "string", "minLength": 1},
+        "pronunciation_evidence_basis": {"enum": ["direct_live_audio", "transcript_only", "not_assessed", "not_applicable"]},
+        "prompt_novelty": {"enum": ["unseen", "rehearsed", "not_applicable", "unknown"]},
+        "text_shown_before_response": {"type": "boolean"},
+        "notes": {"type": "string"}
+      }
+    }
+  }
+}

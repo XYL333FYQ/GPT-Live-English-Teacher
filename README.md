@@ -1,183 +1,134 @@
 # GPT Live English Coach
 
 <p align="center">
-  <a href="README.md">English</a> ·
-  <a href="README.zh-CN.md">简体中文</a>
+  <a href="README.md">English</a> · <a href="README.zh-CN.md">简体中文</a>
 </p>
 
 <p align="center">
-  <img alt="GPT-Live" src="https://img.shields.io/badge/Built%20for-GPT--Live-10a37f">
-  <img alt="ChatGPT Voice" src="https://img.shields.io/badge/ChatGPT-Voice-111827">
-  <img alt="AI English Tutor" src="https://img.shields.io/badge/AI-English%20Tutor-2f6fed">
-  <img alt="Portable Memory" src="https://img.shields.io/badge/Memory-Portable%20JSON-4b79ff">
-  <img alt="License" src="https://img.shields.io/badge/License-CC%20BY%204.0%20%2B%20MIT-b8c0cc">
+  <strong>A ChatGPT Project + GPT Live personal tutor designed for true Pre-A1 beginners.</strong>
 </p>
 
-<h3 align="center">The English course GPT‑Live was made for.</h3>
+This repository is not a standalone app or backend. It provides project-ready teaching instructions, curriculum JSON, a learner-profile schema, and lightweight Python validation tools.
 
-<p align="center">
-  <strong>An open-source AI English tutor for ChatGPT Voice.</strong><br>
-  Attach two files. Step into Live. Practice everyday English, get corrected in the moment, debate fresh real-world topics, and leave with a learner profile that remembers what comes next.
-</p>
+## What v3.0 adds
 
-<p align="center">
-  <sub>Full-duplex speaking · Web-grounded topics · Live correction · Spaced review · No app to install</sub>
-</p>
+The original GPT Live voice lesson, correction, spaced-review, JSON memory, and file-export workflow remain. This version adds:
 
-<p align="center">
-  <a href="https://github.com/loiqy/GPT-Live-English-Coach/raw/refs/heads/main/English_Learning_Instructions.md">
-    <img
-      src="https://img.shields.io/badge/Download-Latest%20Instruction-2ea44f?style=for-the-badge&logo=github"
-      alt="Download latest instruction"
-    >
-  </a>
-  &nbsp;
-  <a href="https://github.com/loiqy/GPT-Live-English-Coach/releases/latest">
-    <img
-      src="https://img.shields.io/badge/View-Latest%20Release-2563eb?style=for-the-badge&logo=github"
-      alt="View latest release"
-    >
-  </a>
-</p>
-
-<p align="center">
-  <img src="assets/hero-collage.png" width="100%" alt="GPT Live English Coach — open-source AI English tutor for ChatGPT Voice and English speaking practice">
-</p>
-
-## Voice just became a real learning surface
-
-OpenAI says **more than 150 million people** use features such as Voice and Dictation every week. GPT‑Live brings full-duplex conversation, better listening through pauses, natural interruption, and background delegation for search and deeper reasoning. The result is a voice interface that can finally carry the rhythm, pressure, and spontaneity of serious speaking practice. [Read the GPT‑Live announcement](https://openai.com/index/introducing-gpt-live/).
-
-**GPT Live English Coach gives that new interface a curriculum, a memory, and a teacher's personality.**
-
-- **Start in real life.** Warm up through hotels, cafés, travel, small talk, clarification, and everyday social situations.
-- **Feel the correction.** The coach catches awkward phrasing, Chinglish, register, pragmatics, and reusable lexical chunks while the conversation is still alive.
-- **Open into the world.** Every lesson can grow into a fresh, web-grounded topic and a deeper debate.
-- **Carry progress forward.** A portable JSON profile preserves your blind spots, review items, session history, and next steps.
-
-## Why GPT‑Live changes the lesson
-
-Earlier voice tutors usually rebuild the same pipeline: speech-to-text, an LLM response, then text-to-speech. GPT‑Live runs continuous interaction inside ChatGPT Voice, so the learner can pause, interrupt, think aloud, and stay inside one flowing conversation. It can also draw on web search, memory, text, images, and visual results in the same chat. That gives this instruction a much richer surface than a traditional voice prompt or a standalone English-tutor demo.
-
-## What you actually use
-
-You only need two files:
-
-1. `English_Learning_Instructions.md`
-2. your latest `English_Learning_Profile.json`
-
-That is the whole user-facing workflow.
-
-## How it works
-
-<p align="center">
-  <img src="assets/how-it-works.png" width="100%" alt="How GPT Live English Coach works">
-</p>
+- 32 ordered units across `PRE_A1 → A1 → A2 → B1`;
+- explicit prerequisites, Can-Do objectives, language scope, and completion criteria for every unit;
+- a required lesson sequence: **Goal → Demonstration → Repeat → Guided practice → Independent expression → Check → Review**;
+- Chinese support by default at Pre-A1, reduced as English ability grows;
+- current course position, knowledge state, listening/speaking/pronunciation weaknesses, and practice evidence in profile v3.0;
+- strict separation of repetition from independent mastery;
+- no precise pronunciation claims from speech transcripts;
+- lossless v2.1 migration, non-overwriting export, and automated integrity tests.
 
 ## Quick start
 
+### Create a ChatGPT Project
+
+Add these static files to one Project:
+
+- `English_Learning_Instructions.md`
+- `curriculum/PRE_A1.json`
+- `curriculum/A1.json`
+- `curriculum/A2.json`
+- `curriculum/B1.json`
+- `schemas/learning-profile.schema.json`
+
 ### First class
 
-1. Download `English_Learning_Instructions.md`.
-2. Start a new ChatGPT conversation.
-3. Attach the instruction file.
-4. Send: `Start my first class.`
-5. Follow the setup and placement flow.
-6. After class, return to text and send: `Test finished`.
-7. Download the generated `English_Learning_Profile.json`.
+1. Start a conversation in the Project.
+2. Send `Start my first class.`
+3. Enter GPT Live when invited. A beginner may use Chinese.
+4. Return to Text Mode and send `Test finished`.
+5. Download `English_Learning_Profile.json`.
 
-> No learner profile is needed for your first class. ChatGPT creates your personal profile after the placement session.
+Placement starts with the lowest-demand tasks. It does not ask a zero beginner for a narrative, abstract opinion, or debate.
 
-### Every class after that
+### Later classes
 
-1. Start a new ChatGPT conversation.
-2. Attach:
-   - `English_Learning_Instructions.md`
-   - your latest `English_Learning_Profile.json`
-3. Send: `Prepare for class`.
-4. Read the pre-flight briefing.
-5. Enter GPT Live and speak.
-6. When you finish, return to text and send: `Class is over, export data.`
-7. Download the updated profile JSON and keep it for the next lesson.
+1. Upload the latest profile JSON.
+2. Send `Prepare for class`.
+3. Enter GPT Live after reviewing the goal.
+4. Return to Text Mode and send `Class is over, export data.`
+5. Download the new `English_Learning_Profile_updated_YYYY-MM-DD.json`.
 
-## What a lesson feels like
+The source profile is never overwritten. Existing export names receive `_2`, `_3`, and so on.
 
-### The opening
+## Levels
 
-You attach your two files, say `Prepare for class`, and receive a pre-flight briefing that sets the tone for the whole lesson.
+| Level | Focus | Chinese support | Target English input |
+|---|---|---|---:|
+| Pre-A1 | Classroom repair, names, letters, numbers, basic needs, survival interaction | Default | 20% → 45% |
+| A1 | Personal details, routines, places, shopping, past events, plans | On request or when blocked | 45% → 70% |
+| A2 | Short narratives, comparison, experience, advice, service problems, opinions | Brief and on request | 70% → 85% |
+| B1 | Connected stories, cause, evidence, negotiation, register, real-world topics | Exceptional support | 85% → 95% |
 
-### The class itself
+A unit unlocks only when prior units are complete or explicitly placement-credited by an unseen integrated check, and its knowledge prerequisites are independently qualified. Placement never fabricates ordinary lesson completion, and repetition never supplies placement evidence.
 
-The lesson opens with an everyday speaking scene, builds momentum through guided practice, and then opens into a fresher, wider conversation.
+The structure takes inspiration from [FreeLingo](https://github.com/artcc/freelingo)'s ordered CEFR units, prerequisites, competency checklists, and integrity tests. This curriculum and evidence model are independently authored; FreeLingo's backend, database, XP, and dynamic exercise system are not included.
 
-### The finish
+## Evidence rules
 
-You get a concise wrap-up, a sync pass over the lesson, and an updated profile file with the new state of your learning.
+Knowledge progresses through:
 
-## Example interaction
+`not_started → introduced → supported → independent → mastered`
 
-**Learner:** I very agree with that, because—
+`placement_credited` is reserved for independently demonstrated placement evidence.
 
-**Coach:** Tiny fix: **I completely agree with that.** Say that once.
+- Demonstration can establish only `introduced`.
+- Repetition and answer-revealing prompts can establish at most `supported`.
+- A new task without answer-revealing support is required for `independent`.
+- `mastered` requires independent passes in at least two sessions, including a later check or review.
 
-**Learner:** I completely agree with that.
+Pronunciation records are qualitative and require direct Live audio. A transcript alone must be marked `not_assessed`. This version never reports numeric, percentage, phoneme-level, or acoustic pronunciation scores.
 
-**Coach:** Exactly. Now—what makes you so sure?
+## Profile v3.0
 
----
+The original `scientific_assessment`, `active_repertoire`, and `session_log` remain. New sections are:
 
-**Learner:** I felt I was abandoned by the team after I did most of the work.
+- `learning_track`;
+- `current_course_position`;
+- `knowledge_state`;
+- `skill_weaknesses` for listening, speaking, and pronunciation;
+- `practice_evidence`, including prompt novelty and whether text was shown before the response;
+- optional `migration_history`.
 
-**Coach:** That sounds genuinely painful, especially if you had been carrying the project. Here, **I felt let down by the team** is probably the more natural fit; **abandoned** sounds stronger and more absolute. Which hurt more—the lack of help or the lack of recognition?
+Migration preserves v2.1 fields, review stages, dates, sessions, and compatible extensions. B2–C2 profiles remain in `legacy_conversation`; Pre-A1–B1 profiles receive a bridge check before a unit is selected.
 
-## Repository contents
+## Repository layout
 
-- `English_Learning_Instructions.md` — the main instruction file (current release: **v2.2.3**)
-- `assets/hero-collage.png` — README hero image
-- `assets/how-it-works.png` — README workflow poster
-- `assets/social-preview.jpg` — GitHub social preview image
-- `tests/test_memory_engine.py` — lightweight checks for the review logic and example data
+```text
+English_Learning_Instructions.md
+curriculum/{PRE_A1,A1,A2,B1}.json
+schemas/{curriculum,learning-profile}.schema.json
+tools/learning_data.py
+tests/
+```
 
-## Why it works well on mobile
+## Validation
 
-This project matches the way ChatGPT Live is actually used:
+No third-party dependencies are required:
 
-- attach the files,
-- step into Live,
-- speak naturally,
-- export updated progress.
+```bash
+python tools/learning_data.py validate
+python -m unittest discover -s tests -v
+```
 
-The entire system stays compact and easy to carry.
+The tests execute the JSON Schemas and cover curriculum references, the seven-phase flow, cross-level placement, unseen-listening evidence, v2.1 migration, the deterministic review queue, pronunciation limits, and export revalidation.
 
-<details>
-<summary><strong>Notes</strong></summary>
+## Limitations
 
-- This is a coaching workflow, not an official IELTS assessment tool.
-- ChatGPT Live behavior can evolve with product updates.
-- Web search availability may affect the deep-dive topic stage.
-- Speech transcription may vary depending on the device and environment.
+- This is not an official CEFR, IELTS, or pronunciation assessment.
+- GPT Live, file tools, and voice behavior may change with ChatGPT.
+- No audio is stored and no acoustic analysis is performed.
+- B1 current-topic work depends on web search; Pre-A1 and A1 do not depend on news discussion.
 
-</details>
+## Version and license
 
-## Version
-
-- Instruction version: **2.2.3**
-- Profile schema: **2.1**
-- Repository package date: **2026-07-11**
-
-## License
-
-- The instruction, documentation, profile template, and images are licensed under **CC BY 4.0**. See [`LICENSE`](LICENSE).
-- Files under `tests/` are licensed under the **MIT License**. See [`tests/LICENSE`](tests/LICENSE).
-
-## Contributing
-
-Issues and pull requests are welcome for:
-
-- lesson experience feedback,
-- persona tuning,
-- memory-engine edge cases,
-- mobile-first usability,
-- documentation polish.
-
-See `CONTRIBUTING.md`.
+- Instruction: **v3.0.0**
+- Profile schema: **3.0**
+- Curriculum: **1.0.0**
+- Instructions, curriculum, documentation, schemas, and example profile use CC BY 4.0 under `LICENSE`.
+- Python files under `tools/` and `tests/` use the MIT license under `tests/LICENSE`.

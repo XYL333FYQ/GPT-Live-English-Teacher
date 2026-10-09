@@ -1,144 +1,220 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: MIT
-# Copyright (c) 2026 Liqin Luo
-"""Lightweight checks for GPT Live English Coach.
-
-This script validates:
-- example profile JSON is well-formed;
-- Mastery Ladder stage transitions behave as expected;
-- active-item update logic works;
-- UNTESTED does not mutate learning state;
-- a one-time defer flag can be cleared without changing mastery state.
-"""
 from __future__ import annotations
 
-from dataclasses import dataclass, replace
-from datetime import date, timedelta
-from pathlib import Path
-import json
+from datetime import date
+import unittest
 
-INTERVALS = [1, 3, 7, 14, 30, 60]
-MASTERED_RECHECK_DAYS = 365
-
-ROOT = Path(__file__).resolve().parents[1]
-EXAMPLE_JSON = ROOT / "fixtures" / "English_Learning_Profile.example.json"
-
-
-@dataclass
-class Item:
-    stage: int = 0
-    status: str = "active"
-    lapse_count: int = 0
-    selection_defer_once: bool = False
-    last_outcome: str | None = None
-    next_review_date: date = date(2026, 7, 12)
-    last_review_date: date | None = None
+from tools.learning_data import (
+    adaptive_new_repertoire_count,
+    apply_knowledge_evidence,
+    evidence_is_placement_credit,
+    prepare_review_queue,
+    pronunciation_claim_allowed,
+    update_repertoire_item,
+)
 
 
-def update_active(item: Item, outcome: str, today: date) -> Item:
-    out = replace(item)
-    if outcome == "UNTESTED":
-        out.selection_defer_once = True
-        return out
+class MasteryLadderTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.today = date(2026, 10, 8)
+        self.item = {
+            "item_id": "item_0001",
+            "item": "Please say it again.",
+            "item_type": "core_vocabulary",
+            "stage": 0,
+            "status": "active",
+            "next_review_date": "2026-10-08",
+            "last_review_date": None,
+            "last_outcome": None,
+            "lapse_count": 0,
+            "selection_defer_once": False,
+        }
 
-    out.last_outcome = outcome
-    out.last_review_date = today
+    def test_active_stage_progression(self) -> None:
+        current = self.item
+        current_day = self.today
+        observed = []
+        for _ in range(6):
+            current = update_repertoire_item(current, "PASS", current_day)
+            next_day = date.fromisoformat(current["next_review_date"])
+            observed.append((current["status"], current["stage"], (next_day - current_day).days))
+            current_day = next_day
+        self.assertEqual(
+            observed,
+            [
+                ("active", 1, 3),
+                ("active", 2, 7),
+                ("active", 3, 14),
+                ("active", 4, 30),
+                ("active", 5, 60),
+                ("mastered", 5, 365),
+            ],
+        )
 
-    if outcome == "PASS":
-        if out.stage == 5:
-            out.status = "mastered"
-            out.next_review_date = today + timedelta(days=MASTERED_RECHECK_DAYS)
-        else:
-            out.stage += 1
-            out.next_review_date = today + timedelta(days=INTERVALS[out.stage])
-    elif outcome == "PARTIAL":
-        out.stage = max(0, out.stage - 1)
-        out.next_review_date = today + timedelta(days=INTERVALS[out.stage])
-    elif outcome == "FAIL":
-        out.stage = 0
-        out.lapse_count += 1
-        out.next_review_date = today + timedelta(days=INTERVALS[0])
-    else:
-        raise ValueError(outcome)
+    def test_partial_fail_and_untested(self) -> None:
+        partial_source = {**self.item, "stage": 4}
+        partial = update_repertoire_item(partial_source, "PARTIAL", self.today)
+        self.assertEqual(partial["stage"], 3)
+        self.assertEqual(partial["next_review_date"], "2026-10-22")
 
-    out.selection_defer_once = False
-    return out
+        failed = update_repertoire_item({**self.item, "stage": 5}, "FAIL", self.today)
+        self.assertEqual(failed["stage"], 0)
+        self.assertEqual(failed["lapse_count"], 1)
+        self.assertEqual(failed["next_review_date"], "2026-10-09")
 
+        original = {**self.item, "stage": 3, "lapse_count": 2, "next_review_date": "2026-10-05"}
+        untested = update_repertoire_item(original, "UNTESTED", self.today)
+        for field in ("stage", "status", "lapse_count", "next_review_date", "last_review_date", "last_outcome"):
+            self.assertEqual(untested[field], original[field])
+        self.assertTrue(untested["selection_defer_once"])
 
-def clear_defer_without_learning_change(item: Item) -> Item:
-    out = replace(item)
-    out.selection_defer_once = False
-    return out
+    def test_mastered_recheck_rules(self) -> None:
+        mastered = {**self.item, "stage": 5, "status": "mastered"}
+        passed = update_repertoire_item(mastered, "PASS", self.today)
+        self.assertEqual(passed["status"], "mastered")
+        self.assertEqual(passed["next_review_date"], "2027-10-08")
 
+        partial = update_repertoire_item(mastered, "PARTIAL", self.today)
+        self.assertEqual((partial["status"], partial["stage"], partial["next_review_date"]), ("active", 4, "2026-11-07"))
 
-def test_example_json() -> None:
-    data = json.loads(EXAMPLE_JSON.read_text(encoding="utf-8"))
-    assert data["schema_version"] == "2.1"
-    assert "scientific_assessment" in data
-    assert isinstance(data["active_repertoire"], list)
-    assert isinstance(data["session_log"], list)
-    first = data["active_repertoire"][0]
-    assert first["selection_defer_once"] is False
-    assert first["stage"] == 0
+        failed = update_repertoire_item(mastered, "FAIL", self.today)
+        self.assertEqual((failed["status"], failed["stage"], failed["lapse_count"]), ("active", 0, 1))
 
+    def test_queue_is_deterministic_and_defer_lasts_one_cycle(self) -> None:
+        def item(item_id: str, item_type: str, defer: bool, lapse: int = 0) -> dict:
+            return {
+                **self.item,
+                "item_id": item_id,
+                "item_type": item_type,
+                "next_review_date": "2026-10-07",
+                "selection_defer_once": defer,
+                "lapse_count": lapse,
+            }
 
-def test_stage_progression() -> None:
-    today = date(2026, 7, 11)
-    item = Item(stage=0, status="active", next_review_date=today)
-    steps = []
-    current = item
-    current_day = today
-    for _ in range(6):
-        current = update_active(current, "PASS", current_day)
-        steps.append((current.status, current.stage, (current.next_review_date - current_day).days))
-        current_day = current.next_review_date
-    assert steps == [
-        ("active", 1, 3),
-        ("active", 2, 7),
-        ("active", 3, 14),
-        ("active", 4, 30),
-        ("active", 5, 60),
-        ("mastered", 5, 365),
-    ]
+        items = [
+            item("item_a", "chunk_&_idiom", False),
+            item("item_b", "core_vocabulary", False),
+            item("item_c", "chunk_&_idiom", False, lapse=2),
+            {**item("item_d", "core_vocabulary", True), "next_review_date": "2026-10-01"},
+        ]
+        selected, working = prepare_review_queue(items, self.today, daily_review_limit=4)
+        self.assertEqual([entry["item_id"] for entry in selected], ["item_c", "item_b", "item_a", "item_d"])
+        self.assertFalse(next(entry for entry in working if entry["item_id"] == "item_d")["selection_defer_once"])
+        self.assertTrue(next(entry for entry in items if entry["item_id"] == "item_d")["selection_defer_once"])
 
-
-def test_partial_and_fail() -> None:
-    today = date(2026, 7, 11)
-    partial = update_active(Item(stage=4, next_review_date=today), "PARTIAL", today)
-    assert partial.stage == 3
-    assert (partial.next_review_date - today).days == 14
-
-    failed = update_active(Item(stage=5, next_review_date=today), "FAIL", today)
-    assert failed.stage == 0
-    assert failed.lapse_count == 1
-    assert (failed.next_review_date - today).days == 1
-
-
-def test_untested_behavior() -> None:
-    today = date(2026, 7, 11)
-    original = Item(stage=3, lapse_count=2, next_review_date=date(2026, 7, 8))
-    untouched = update_active(original, "UNTESTED", today)
-    assert untouched.stage == original.stage
-    assert untouched.lapse_count == original.lapse_count
-    assert untouched.next_review_date == original.next_review_date
-    assert untouched.last_review_date == original.last_review_date
-    assert untouched.last_outcome == original.last_outcome
-    assert untouched.selection_defer_once is True
-
-    restored = clear_defer_without_learning_change(untouched)
-    assert restored.stage == original.stage
-    assert restored.lapse_count == original.lapse_count
-    assert restored.next_review_date == original.next_review_date
-    assert restored.selection_defer_once is False
+    def test_adaptive_new_item_count_uses_complete_due_queue(self) -> None:
+        due = [{**self.item, "item_id": f"item_{index}"} for index in range(5)]
+        self.assertEqual(adaptive_new_repertoire_count([], self.today), 2)
+        self.assertEqual(adaptive_new_repertoire_count(due, self.today), 1)
+        self.assertEqual(adaptive_new_repertoire_count(due + due[:3], self.today), 0)
+        overdue = [{**self.item, "next_review_date": "2026-10-07"}]
+        self.assertEqual(adaptive_new_repertoire_count(overdue, self.today), 0)
 
 
-def main() -> None:
-    test_example_json()
-    test_stage_progression()
-    test_partial_and_fail()
-    test_untested_behavior()
-    print("All lightweight repository checks passed.")
+class EvidenceSemanticsTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.state = {
+            "knowledge_id": "PRE_A1-K005",
+            "unit_id": "PRE_A1-U02",
+            "state": "not_started",
+            "evidence_ids": [],
+            "independent_pass_sessions": [],
+            "review_pass_sessions": [],
+            "last_review_date": None,
+            "next_review_date": None,
+        }
+
+    def evidence(self, evidence_id: str, session_id: str, phase: str, support: str, result: str) -> dict:
+        return {
+            "evidence_id": evidence_id,
+            "session_id": session_id,
+            "phase": phase,
+            "objective_id": None if phase == "placement" else "PRE_A1-O003",
+            "knowledge_ids": ["PRE_A1-K005"],
+            "modality": "voice",
+            "support_level": support,
+            "result": result,
+            "prompt_novelty": "unseen" if phase in {"placement", "independent_expression", "check", "review"} else "rehearsed",
+            "text_shown_before_response": False,
+        }
+
+    def test_repetition_never_becomes_independent(self) -> None:
+        repeated = apply_knowledge_evidence(
+            self.state,
+            self.evidence("e1", "s1", "repeat_after_model", "model_immediately_before", "PRACTICED"),
+        )
+        self.assertEqual(repeated["state"], "supported")
+        self.assertEqual(repeated["independent_pass_sessions"], [])
+
+    def test_guided_success_never_becomes_independent(self) -> None:
+        guided = apply_knowledge_evidence(
+            self.state,
+            self.evidence("e1", "s1", "guided_practice", "sentence_starter", "PASS"),
+        )
+        self.assertEqual(guided["state"], "supported")
+
+    def test_mastery_needs_a_later_review(self) -> None:
+        first = apply_knowledge_evidence(
+            self.state,
+            self.evidence("e1", "s1", "check", "none", "PASS"),
+        )
+        second = apply_knowledge_evidence(
+            first,
+            self.evidence("e2", "s2", "independent_expression", "none", "PASS"),
+        )
+        self.assertEqual(second["state"], "independent")
+        third = apply_knowledge_evidence(
+            second,
+            self.evidence("e3", "s3", "review", "non_revealing_context", "PASS"),
+            mastery_requires_distinct_sessions=3,
+        )
+        self.assertEqual(third["state"], "mastered")
+        self.assertEqual(third["independent_pass_sessions"], ["s1", "s2", "s3"])
+
+    def test_placement_credit_requires_independent_unseen_evidence(self) -> None:
+        credited = apply_knowledge_evidence(
+            self.state,
+            self.evidence("e1", "placement_1", "placement", "none", "PASS"),
+        )
+        self.assertEqual(credited["state"], "placement_credited")
+
+    def test_placement_rejects_text_or_visible_answers(self) -> None:
+        evidence = self.evidence("e1", "placement_1", "placement", "none", "PASS")
+        evidence["modality"] = "text"
+        self.assertFalse(evidence_is_placement_credit(evidence))
+        evidence["modality"] = "voice"
+        evidence["text_shown_before_response"] = True
+        self.assertFalse(evidence_is_placement_credit(evidence))
+
+    def test_failure_does_not_promote_unstarted_knowledge(self) -> None:
+        failed = apply_knowledge_evidence(
+            self.state,
+            self.evidence("e1", "s1", "check", "none", "FAIL"),
+        )
+        self.assertEqual(failed["state"], "not_started")
+
+    def test_mastered_state_survives_an_independent_pass(self) -> None:
+        mastered = {**self.state, "state": "mastered", "independent_pass_sessions": ["s1", "s2"]}
+        passed = apply_knowledge_evidence(
+            mastered,
+            self.evidence("e3", "s3", "independent_expression", "none", "PASS"),
+        )
+        self.assertEqual(passed["state"], "mastered")
+
+    def test_revealing_prompt_does_not_count(self) -> None:
+        supported = apply_knowledge_evidence(
+            self.state,
+            self.evidence("e1", "s1", "check", "sentence_starter", "PASS"),
+        )
+        self.assertNotEqual(supported["state"], "independent")
+        self.assertEqual(supported["independent_pass_sessions"], [])
+
+    def test_pronunciation_claim_boundary(self) -> None:
+        self.assertFalse(pronunciation_claim_allowed("transcript_only", "word_stress"))
+        self.assertFalse(pronunciation_claim_allowed("direct_live_audio", "numeric_score"))
+        self.assertTrue(pronunciation_claim_allowed("direct_live_audio", "intelligibility"))
 
 
 if __name__ == "__main__":
-    main()
+    unittest.main()

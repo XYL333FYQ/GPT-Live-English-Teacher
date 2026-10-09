@@ -1,0 +1,156 @@
+{
+  "schema_version": "1.0",
+  "curriculum_id": "gpt-live-english-foundations",
+  "curriculum_version": "1.0.0",
+  "level_id": "B1",
+  "level_order": 3,
+  "title_zh": "B1 独立沟通英语",
+  "entry_standard_zh": "已达到 A2 完成标准，或经独立听说检验证明具备同等能力。",
+  "exit_standard_zh": "能围绕熟悉及部分现实议题维持连贯交流，解释理由、处理意外并调整表达。",
+  "support_policy": {
+    "chinese_support": "exception_for_blocking_concepts",
+    "english_input_percent_start": 85,
+    "english_input_percent_end": 95,
+    "teacher_turn_max_words": 60,
+    "new_knowledge_per_lesson_max": 8
+  },
+  "lesson_flow": ["course_goal", "demonstration", "repeat_after_model", "guided_practice", "independent_expression", "check", "review"],
+  "units": [
+    {
+      "unit_id": "B1-U01", "order": 1, "title_zh": "展开个人故事", "title_en": "Developing a Personal Story",
+      "prerequisite_units": ["A2-U08"],
+      "prerequisite_knowledge_ids": ["A2-K001", "A2-K002", "A2-K004"],
+      "knowledge": [
+        {"knowledge_id": "B1-K001", "type": "grammar", "form": "past continuous + past simple", "meaning_zh": "背景动作与关键事件"},
+        {"knowledge_id": "B1-K002", "type": "chunk", "form": "What surprised me was ___.", "meaning_zh": "突出故事重点"},
+        {"knowledge_id": "B1-K003", "type": "interaction", "form": "set-up → event → reaction → outcome", "meaning_zh": "四段叙事结构"},
+        {"knowledge_id": "B1-K004", "type": "listening", "form": "main event / attitude / outcome", "meaning_zh": "叙事主线与态度听辨"}
+      ],
+      "objectives": [
+        {"objective_id": "B1-O001", "mode": "speaking", "can_do_zh": "独立讲述一段一至两分钟的经历，交代背景、事件和反应。", "target_knowledge_ids": ["B1-K001", "B1-K002", "B1-K003"], "evidence_requirement": "independent_extended_turn_without_language_prompts"},
+        {"objective_id": "B1-O002", "mode": "listening", "can_do_zh": "听一段新故事，概括主线并识别说话者态度。", "target_knowledge_ids": ["B1-K004"], "evidence_requirement": "unseen_audio_summary_without_text"}
+      ],
+      "teaching_notes_zh": ["纠错放在意义单元结束后。", "跟读只用于新叙事块的口腔熟悉。"],
+      "completion_criteria": {"required_objective_ids": ["B1-O001", "B1-O002"], "minimum_independent_passes_per_objective": 1, "mastery_requires_distinct_sessions": 2, "requires_unseen_listening_check": true, "repeat_after_model_counts_as_independent": false, "transcript_only_pronunciation_scoring_allowed": false}
+    },
+    {
+      "unit_id": "B1-U02", "order": 2, "title_zh": "解释原因、结果与对比", "title_en": "Causes, Results, and Contrasts",
+      "prerequisite_units": ["B1-U01"],
+      "prerequisite_knowledge_ids": ["A2-K025", "A2-K027", "B1-K003"],
+      "knowledge": [
+        {"knowledge_id": "B1-K005", "type": "chunk", "form": "The main reason is that ___.", "meaning_zh": "突出主要原因"},
+        {"knowledge_id": "B1-K006", "type": "grammar", "form": "although / however / as a result", "meaning_zh": "让步、转折与结果"},
+        {"knowledge_id": "B1-K007", "type": "interaction", "form": "claim → reason → example → result", "meaning_zh": "解释结构"},
+        {"knowledge_id": "B1-K008", "type": "listening", "form": "cause-effect links", "meaning_zh": "因果关系听辨"}
+      ],
+      "objectives": [
+        {"objective_id": "B1-O003", "mode": "speaking", "can_do_zh": "独立解释一个熟悉问题的原因、例子和结果。", "target_knowledge_ids": ["B1-K005", "B1-K006", "B1-K007"], "evidence_requirement": "independent_extended_turn_without_language_prompts"},
+        {"objective_id": "B1-O004", "mode": "listening", "can_do_zh": "从新说明中识别主要原因和一个结果。", "target_knowledge_ids": ["B1-K008"], "evidence_requirement": "unseen_audio_summary_without_text"}
+      ],
+      "teaching_notes_zh": ["一次只提升一个连接维度。", "如果观点复杂，优先保留思路再延迟纠错。"],
+      "completion_criteria": {"required_objective_ids": ["B1-O003", "B1-O004"], "minimum_independent_passes_per_objective": 1, "mastery_requires_distinct_sessions": 2, "requires_unseen_listening_check": true, "repeat_after_model_counts_as_independent": false, "transcript_only_pronunciation_scoring_allowed": false}
+    },
+    {
+      "unit_id": "B1-U03", "order": 3, "title_zh": "观点、证据与保留", "title_en": "Opinions, Evidence, and Reservations",
+      "prerequisite_units": ["B1-U02"],
+      "prerequisite_knowledge_ids": ["A2-K025", "A2-K026", "B1-K007"],
+      "knowledge": [
+        {"knowledge_id": "B1-K009", "type": "chunk", "form": "From my point of view, ___.", "meaning_zh": "明确立场"},
+        {"knowledge_id": "B1-K010", "type": "chunk", "form": "For example, ___. / The evidence is ___.", "meaning_zh": "引入例证"},
+        {"knowledge_id": "B1-K011", "type": "pragmatics", "form": "I see your point, but ___.", "meaning_zh": "承认后提出不同意见"},
+        {"knowledge_id": "B1-K012", "type": "listening", "form": "claim / support / reservation", "meaning_zh": "立场、支持与保留听辨"}
+      ],
+      "objectives": [
+        {"objective_id": "B1-O005", "mode": "speaking", "can_do_zh": "就熟悉议题表达立场，用例子支持并承认一个限制。", "target_knowledge_ids": ["B1-K009", "B1-K010", "B1-K011"], "evidence_requirement": "independent_opinion_with_support_and_reservation"},
+        {"objective_id": "B1-O006", "mode": "listening", "can_do_zh": "听懂另一立场的主张、依据和保留。", "target_knowledge_ids": ["B1-K012"], "evidence_requirement": "unseen_audio_summary_without_text"}
+      ],
+      "teaching_notes_zh": ["议题应与学习者经验有关。", "不要求尚未学过的抽象术语或即兴长辩论。"],
+      "completion_criteria": {"required_objective_ids": ["B1-O005", "B1-O006"], "minimum_independent_passes_per_objective": 1, "mastery_requires_distinct_sessions": 2, "requires_unseen_listening_check": true, "repeat_after_model_counts_as_independent": false, "transcript_only_pronunciation_scoring_allowed": false}
+    },
+    {
+      "unit_id": "B1-U04", "order": 4, "title_zh": "协商与共同决定", "title_en": "Negotiating a Decision",
+      "prerequisite_units": ["B1-U03"],
+      "prerequisite_knowledge_ids": ["A2-K021", "A2-K023", "B1-K011"],
+      "knowledge": [
+        {"knowledge_id": "B1-K013", "type": "chunk", "form": "What if we ___?", "meaning_zh": "提出折中方案"},
+        {"knowledge_id": "B1-K014", "type": "chunk", "form": "That could work if ___.", "meaning_zh": "有条件接受"},
+        {"knowledge_id": "B1-K015", "type": "pragmatics", "form": "clarify → propose → respond → confirm", "meaning_zh": "协商四步结构"},
+        {"knowledge_id": "B1-K016", "type": "listening", "form": "constraints and final agreement", "meaning_zh": "限制条件与最终决定听辨"}
+      ],
+      "objectives": [
+        {"objective_id": "B1-O007", "mode": "interaction", "can_do_zh": "在新限制条件下提出、回应并确认一个共同方案。", "target_knowledge_ids": ["B1-K013", "B1-K014", "B1-K015"], "evidence_requirement": "independent_unrehearsed_negotiation"},
+        {"objective_id": "B1-O008", "mode": "listening", "can_do_zh": "从多轮协商中提取两项限制和最终决定。", "target_knowledge_ids": ["B1-K016"], "evidence_requirement": "unseen_audio_questions_without_text"}
+      ],
+      "teaching_notes_zh": ["角色各自只有一至两个限制。", "检验阶段更换限制，不能复演示范。"],
+      "completion_criteria": {"required_objective_ids": ["B1-O007", "B1-O008"], "minimum_independent_passes_per_objective": 1, "mastery_requires_distinct_sessions": 2, "requires_unseen_listening_check": true, "repeat_after_model_counts_as_independent": false, "transcript_only_pronunciation_scoring_allowed": false}
+    },
+    {
+      "unit_id": "B1-U05", "order": 5, "title_zh": "正式、日常与修复表达", "title_en": "Register and Repair",
+      "prerequisite_units": ["B1-U04"],
+      "prerequisite_knowledge_ids": ["A2-K018", "A2-K019", "B1-K011"],
+      "knowledge": [
+        {"knowledge_id": "B1-K017", "type": "pragmatics", "form": "direct / neutral / polite request", "meaning_zh": "请求语域选择"},
+        {"knowledge_id": "B1-K018", "type": "chunk", "form": "What I mean is ___.", "meaning_zh": "修复自己的表达"},
+        {"knowledge_id": "B1-K019", "type": "chunk", "form": "Could you clarify what you mean by ___?", "meaning_zh": "请求澄清"},
+        {"knowledge_id": "B1-K020", "type": "listening", "form": "speaker relationship and tone", "meaning_zh": "关系与语气意图听辨"}
+      ],
+      "objectives": [
+        {"objective_id": "B1-O009", "mode": "interaction", "can_do_zh": "根据朋友、同事或服务人员三种关系选择合适请求。", "target_knowledge_ids": ["B1-K017"], "evidence_requirement": "independent_register_choice_in_unseen_scenario"},
+        {"objective_id": "B1-O010", "mode": "interaction", "can_do_zh": "出现误解时主动澄清或重述，而不是放弃交流。", "target_knowledge_ids": ["B1-K018", "B1-K019", "B1-K020"], "evidence_requirement": "independent_repair_after_natural_breakdown"}
+      ],
+      "teaching_notes_zh": ["先说明关系和意图，不讲术语堆砌。", "对语音只作直接音频下的可懂度观察。"],
+      "completion_criteria": {"required_objective_ids": ["B1-O009", "B1-O010"], "minimum_independent_passes_per_objective": 1, "mastery_requires_distinct_sessions": 2, "requires_unseen_listening_check": false, "repeat_after_model_counts_as_independent": false, "transcript_only_pronunciation_scoring_allowed": false}
+    },
+    {
+      "unit_id": "B1-U06", "order": 6, "title_zh": "条件、后果与建议", "title_en": "Conditions and Consequences",
+      "prerequisite_units": ["B1-U05"],
+      "prerequisite_knowledge_ids": ["A2-K013", "B1-K006", "B1-K014"],
+      "knowledge": [
+        {"knowledge_id": "B1-K021", "type": "grammar", "form": "first conditional", "meaning_zh": "真实可能条件与结果"},
+        {"knowledge_id": "B1-K022", "type": "grammar", "form": "second conditional for simple hypotheticals", "meaning_zh": "简单假设"},
+        {"knowledge_id": "B1-K023", "type": "chunk", "form": "If that happens, we could ___.", "meaning_zh": "提出应对办法"},
+        {"knowledge_id": "B1-K024", "type": "interaction", "form": "risk → consequence → response", "meaning_zh": "风险讨论结构"}
+      ],
+      "objectives": [
+        {"objective_id": "B1-O011", "mode": "speaking", "can_do_zh": "独立说明一个现实选择的可能后果和应对办法。", "target_knowledge_ids": ["B1-K021", "B1-K023", "B1-K024"], "evidence_requirement": "independent_scenario_response_without_language_prompts"},
+        {"objective_id": "B1-O012", "mode": "interaction", "can_do_zh": "就一个简单假设提出并追问想法。", "target_knowledge_ids": ["B1-K022"], "evidence_requirement": "unrehearsed_question_answer_exchange"}
+      ],
+      "teaching_notes_zh": ["先教真实条件，再引入单一简单假设。", "不把条件句变成脱离意义的变形练习。"],
+      "completion_criteria": {"required_objective_ids": ["B1-O011", "B1-O012"], "minimum_independent_passes_per_objective": 1, "mastery_requires_distinct_sessions": 2, "requires_unseen_listening_check": false, "repeat_after_model_counts_as_independent": false, "transcript_only_pronunciation_scoring_allowed": false}
+    },
+    {
+      "unit_id": "B1-U07", "order": 7, "title_zh": "转述信息与确认来源", "title_en": "Reporting Information",
+      "prerequisite_units": ["B1-U06"],
+      "prerequisite_knowledge_ids": ["B1-K005", "B1-K008", "B1-K019"],
+      "knowledge": [
+        {"knowledge_id": "B1-K025", "type": "grammar", "form": "said / told / reported that", "meaning_zh": "基础转述"},
+        {"knowledge_id": "B1-K026", "type": "chunk", "form": "According to ___, ___.", "meaning_zh": "标明信息来源"},
+        {"knowledge_id": "B1-K027", "type": "chunk", "form": "I'm not sure whether ___.", "meaning_zh": "表达不确定"},
+        {"knowledge_id": "B1-K028", "type": "listening", "form": "fact / source / uncertainty", "meaning_zh": "事实、来源与不确定性听辨"}
+      ],
+      "objectives": [
+        {"objective_id": "B1-O013", "mode": "speaking", "can_do_zh": "听取一段新信息后，区分来源、事实和不确定部分进行转述。", "target_knowledge_ids": ["B1-K025", "B1-K026", "B1-K027"], "evidence_requirement": "independent_report_after_unseen_audio"},
+        {"objective_id": "B1-O014", "mode": "listening", "can_do_zh": "识别说话者是在陈述事实、引用来源还是表达不确定。", "target_knowledge_ids": ["B1-K028"], "evidence_requirement": "unseen_audio_questions_without_text"}
+      ],
+      "teaching_notes_zh": ["使用短且可核对的信息。", "不要求复杂时态后移规则。"],
+      "completion_criteria": {"required_objective_ids": ["B1-O013", "B1-O014"], "minimum_independent_passes_per_objective": 1, "mastery_requires_distinct_sessions": 2, "requires_unseen_listening_check": true, "repeat_after_model_counts_as_independent": false, "transcript_only_pronunciation_scoring_allowed": false}
+    },
+    {
+      "unit_id": "B1-U08", "order": 8, "title_zh": "现实议题与 B1 综合检验", "title_en": "Real-world Topic and B1 Check",
+      "prerequisite_units": ["B1-U07"],
+      "prerequisite_knowledge_ids": ["B1-K007", "B1-K011", "B1-K015", "B1-K026"],
+      "knowledge": [
+        {"knowledge_id": "B1-K029", "type": "interaction", "form": "understand → position → support → respond → conclude", "meaning_zh": "有边界的讨论结构"},
+        {"knowledge_id": "B1-K030", "type": "pragmatics", "form": "agree / qualify / disagree / repair", "meaning_zh": "讨论中的互动动作"},
+        {"knowledge_id": "B1-K031", "type": "listening", "form": "gist / stance / two supporting details", "meaning_zh": "现实话题主旨与细节听辨"},
+        {"knowledge_id": "B1-K032", "type": "chunk", "form": "Overall, I think ___.", "meaning_zh": "简短总结立场"}
+      ],
+      "objectives": [
+        {"objective_id": "B1-O015", "mode": "interaction", "can_do_zh": "围绕经过核实且语言已分级的现实话题进行三至五分钟交流。", "target_knowledge_ids": ["B1-K029", "B1-K030", "B1-K032"], "evidence_requirement": "independent_integrated_level_check"},
+        {"objective_id": "B1-O016", "mode": "listening", "can_do_zh": "理解一段新输入的主旨、立场和两个支持细节。", "target_knowledge_ids": ["B1-K031"], "evidence_requirement": "unseen_audio_summary_without_text"}
+      ],
+      "teaching_notes_zh": ["现实话题必须先做语言降阶，不默认进入复杂辩论。", "内容真实性与语言能力分别记录。"],
+      "completion_criteria": {"required_objective_ids": ["B1-O015", "B1-O016"], "minimum_independent_passes_per_objective": 1, "mastery_requires_distinct_sessions": 2, "requires_unseen_listening_check": true, "repeat_after_model_counts_as_independent": false, "transcript_only_pronunciation_scoring_allowed": false}
+    }
+  ]
+}

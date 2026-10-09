@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "GPT Live English Foundations Curriculum",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "curriculum_id", "curriculum_version", "level_id", "level_order", "title_zh", "entry_standard_zh", "exit_standard_zh", "support_policy", "lesson_flow", "units"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "curriculum_id": {"const": "gpt-live-english-foundations"},
+    "curriculum_version": {"type": "string", "minLength": 1},
+    "level_id": {"enum": ["PRE_A1", "A1", "A2", "B1"]},
+    "level_order": {"type": "integer", "minimum": 0, "maximum": 3},
+    "title_zh": {"type": "string", "minLength": 1},
+    "entry_standard_zh": {"type": "string", "minLength": 1},
+    "exit_standard_zh": {"type": "string", "minLength": 1},
+    "support_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["chinese_support", "english_input_percent_start", "english_input_percent_end", "teacher_turn_max_words", "new_knowledge_per_lesson_max"],
+      "properties": {
+        "chinese_support": {"enum": ["default_on", "on_request_or_when_blocked", "brief_on_request", "exception_for_blocking_concepts"]},
+        "english_input_percent_start": {"type": "integer", "minimum": 0, "maximum": 100},
+        "english_input_percent_end": {"type": "integer", "minimum": 0, "maximum": 100},
+        "teacher_turn_max_words": {"type": "integer", "minimum": 1},
+        "new_knowledge_per_lesson_max": {"type": "integer", "minimum": 1}
+      }
+    },
+    "lesson_flow": {
+      "const": ["course_goal", "demonstration", "repeat_after_model", "guided_practice", "independent_expression", "check", "review"]
+    },
+    "units": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/unit"}
+    }
+  },
+  "$defs": {
+    "knowledge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["knowledge_id", "type", "form", "meaning_zh"],
+      "properties": {
+        "knowledge_id": {"type": "string", "pattern": "^(PRE_A1|A1|A2|B1)-K[0-9]{3}$"},
+        "type": {"enum": ["vocabulary", "chunk", "grammar", "pronunciation", "listening", "speaking", "interaction", "pragmatics"]},
+        "form": {"type": "string", "minLength": 1},
+        "meaning_zh": {"type": "string", "minLength": 1}
+      }
+    },
+    "objective": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["objective_id", "mode", "can_do_zh", "target_knowledge_ids", "evidence_requirement"],
+      "properties": {
+        "objective_id": {"type": "string", "pattern": "^(PRE_A1|A1|A2|B1)-O[0-9]{3}$"},
+        "mode": {"enum": ["listening", "speaking", "interaction"]},
+        "can_do_zh": {"type": "string", "minLength": 1},
+        "target_knowledge_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string"}},
+        "evidence_requirement": {"type": "string", "minLength": 1}
+      }
+    },
+    "completion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["required_objective_ids", "minimum_independent_passes_per_objective", "mastery_requires_distinct_sessions", "requires_unseen_listening_check", "repeat_after_model_counts_as_independent", "transcript_only_pronunciation_scoring_allowed"],
+      "properties": {
+        "required_objective_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string"}},
+        "minimum_independent_passes_per_objective": {"type": "integer", "minimum": 1},
+        "mastery_requires_distinct_sessions": {"type": "integer", "minimum": 2},
+        "requires_unseen_listening_check": {"type": "boolean"},
+        "repeat_after_model_counts_as_independent": {"const": false},
+        "transcript_only_pronunciation_scoring_allowed": {"const": false}
+      }
+    },
+    "unit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["unit_id", "order", "title_zh", "title_en", "prerequisite_units", "prerequisite_knowledge_ids", "knowledge", "objectives", "teaching_notes_zh", "completion_criteria"],
+      "properties": {
+        "unit_id": {"type": "string", "pattern": "^(PRE_A1|A1|A2|B1)-U[0-9]{2}$"},
+        "order": {"type": "integer", "minimum": 1},
+        "title_zh": {"type": "string", "minLength": 1},
+        "title_en": {"type": "string", "minLength": 1},
+        "prerequisite_units": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
+        "prerequisite_knowledge_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
+        "knowledge": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/knowledge"}},
+        "objectives": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/objective"}},
+        "teaching_notes_zh": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+        "completion_criteria": {"$ref": "#/$defs/completion"}
+      }
+    }
+  }
+}

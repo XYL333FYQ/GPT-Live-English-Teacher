@@ -1,0 +1,157 @@
+{
+  "schema_version": "1.0",
+  "curriculum_id": "gpt-live-english-foundations",
+  "curriculum_version": "1.0.0",
+  "level_id": "A1",
+  "level_order": 1,
+  "title_zh": "A1 基础日常英语",
+  "entry_standard_zh": "已达到 Pre-A1 完成标准，或经独立听说检验证明具备同等能力。",
+  "exit_standard_zh": "能在熟悉日常场景中理解清晰慢速话语，并用简单句交换基本个人信息。",
+  "support_policy": {
+    "chinese_support": "on_request_or_when_blocked",
+    "english_input_percent_start": 45,
+    "english_input_percent_end": 70,
+    "teacher_turn_max_words": 18,
+    "new_knowledge_per_lesson_max": 6
+  },
+  "lesson_flow": ["course_goal", "demonstration", "repeat_after_model", "guided_practice", "independent_expression", "check", "review"],
+  "units": [
+    {
+      "unit_id": "A1-U01", "order": 1, "title_zh": "自我、国家与家人", "title_en": "Me, My Country, and Family",
+      "prerequisite_units": ["PRE_A1-U08"],
+      "prerequisite_knowledge_ids": ["PRE_A1-K006", "PRE_A1-K008", "PRE_A1-K030"],
+      "knowledge": [
+        {"knowledge_id": "A1-K001", "type": "grammar", "form": "be: am / is / are", "meaning_zh": "be 动词陈述与问答"},
+        {"knowledge_id": "A1-K002", "type": "grammar", "form": "my / your / his / her", "meaning_zh": "形容词性物主代词"},
+        {"knowledge_id": "A1-K003", "type": "vocabulary", "form": "country / city / family / friend / job", "meaning_zh": "身份与关系词汇"},
+        {"knowledge_id": "A1-K004", "type": "chunk", "form": "I'm from ___. / This is my ___.", "meaning_zh": "介绍来处和关系"}
+      ],
+      "objectives": [
+        {"objective_id": "A1-O001", "mode": "speaking", "can_do_zh": "独立用三至四个简单句介绍自己。", "target_knowledge_ids": ["A1-K001", "A1-K003", "A1-K004"], "evidence_requirement": "independent_short_turn_without_sentence_starter"},
+        {"objective_id": "A1-O002", "mode": "interaction", "can_do_zh": "询问并理解姓名、来处或家庭关系中的两项信息。", "target_knowledge_ids": ["A1-K001", "A1-K002", "A1-K003"], "evidence_requirement": "unrehearsed_question_answer_exchange"}
+      ],
+      "teaching_notes_zh": ["先复用 Pre-A1 自我介绍，再增加一个信息维度。", "不要求描述复杂家庭关系。"],
+      "completion_criteria": {"required_objective_ids": ["A1-O001", "A1-O002"], "minimum_independent_passes_per_objective": 1, "mastery_requires_distinct_sessions": 2, "requires_unseen_listening_check": false, "repeat_after_model_counts_as_independent": false, "transcript_only_pronunciation_scoring_allowed": false}
+    },
+    {
+      "unit_id": "A1-U02", "order": 2, "title_zh": "时间与日常习惯", "title_en": "Time and Routines",
+      "prerequisite_units": ["A1-U01"],
+      "prerequisite_knowledge_ids": ["PRE_A1-K029", "PRE_A1-K031", "A1-K001"],
+      "knowledge": [
+        {"knowledge_id": "A1-K005", "type": "grammar", "form": "present simple affirmative and negative", "meaning_zh": "一般现在时肯定与否定"},
+        {"knowledge_id": "A1-K006", "type": "grammar", "form": "What time do you ___?", "meaning_zh": "询问日常时间"},
+        {"knowledge_id": "A1-K007", "type": "vocabulary", "form": "usually / sometimes / never", "meaning_zh": "基础频率副词"},
+        {"knowledge_id": "A1-K008", "type": "listening", "form": "times and short routine descriptions", "meaning_zh": "时间与日程听辨"}
+      ],
+      "objectives": [
+        {"objective_id": "A1-O003", "mode": "speaking", "can_do_zh": "独立说出三个真实日常活动及大致时间或频率。", "target_knowledge_ids": ["A1-K005", "A1-K007"], "evidence_requirement": "independent_short_turn_without_sentence_starter"},
+        {"objective_id": "A1-O004", "mode": "listening", "can_do_zh": "听一段未见文字的短日程，找出三项关键信息。", "target_knowledge_ids": ["A1-K006", "A1-K008"], "evidence_requirement": "unseen_audio_questions_without_text"}
+      ],
+      "teaching_notes_zh": ["先用整点和常见动作，再扩展半点。", "第三人称单数只在理解需要时简短说明。"],
+      "completion_criteria": {"required_objective_ids": ["A1-O003", "A1-O004"], "minimum_independent_passes_per_objective": 1, "mastery_requires_distinct_sessions": 2, "requires_unseen_listening_check": true, "repeat_after_model_counts_as_independent": false, "transcript_only_pronunciation_scoring_allowed": false}
+    },
+    {
+      "unit_id": "A1-U03", "order": 3, "title_zh": "家与城市位置", "title_en": "Home and Places",
+      "prerequisite_units": ["A1-U02"],
+      "prerequisite_knowledge_ids": ["PRE_A1-K025", "PRE_A1-K027", "A1-K005"],
+      "knowledge": [
+        {"knowledge_id": "A1-K009", "type": "grammar", "form": "There is / There are", "meaning_zh": "描述存在"},
+        {"knowledge_id": "A1-K010", "type": "grammar", "form": "next to / between / opposite", "meaning_zh": "常用位置介词"},
+        {"knowledge_id": "A1-K011", "type": "vocabulary", "form": "room / station / shop / bank / park", "meaning_zh": "家与城市地点"},
+        {"knowledge_id": "A1-K012", "type": "chunk", "form": "Where is ___? It's next to ___.", "meaning_zh": "问路与指认位置"}
+      ],
+      "objectives": [
+        {"objective_id": "A1-O005", "mode": "speaking", "can_do_zh": "看新图独立描述两个地点或物品的位置。", "target_knowledge_ids": ["A1-K009", "A1-K010", "A1-K011"], "evidence_requirement": "independent_response_to_unseen_visual"},
+        {"objective_id": "A1-O006", "mode": "interaction", "can_do_zh": "在简短问路中提出问题并听懂一个两步回答。", "target_knowledge_ids": ["A1-K010", "A1-K012"], "evidence_requirement": "unrehearsed_question_answer_exchange"}
+      ],
+      "teaching_notes_zh": ["位置关系一次只引入两个。", "地图任务先示范，再换一张图做独立检验。"],
+      "completion_criteria": {"required_objective_ids": ["A1-O005", "A1-O006"], "minimum_independent_passes_per_objective": 1, "mastery_requires_distinct_sessions": 2, "requires_unseen_listening_check": false, "repeat_after_model_counts_as_independent": false, "transcript_only_pronunciation_scoring_allowed": false}
+    },
+    {
+      "unit_id": "A1-U04", "order": 4, "title_zh": "饮食、数量与购物", "title_en": "Food and Shopping",
+      "prerequisite_units": ["A1-U03"],
+      "prerequisite_knowledge_ids": ["PRE_A1-K022", "PRE_A1-K023", "PRE_A1-K024"],
+      "knowledge": [
+        {"knowledge_id": "A1-K013", "type": "grammar", "form": "a / an / some / any", "meaning_zh": "基础数量表达"},
+        {"knowledge_id": "A1-K014", "type": "chunk", "form": "How much is it?", "meaning_zh": "询问价格"},
+        {"knowledge_id": "A1-K015", "type": "chunk", "form": "Can I have ___, please?", "meaning_zh": "礼貌购买或点单"},
+        {"knowledge_id": "A1-K016", "type": "listening", "form": "prices and quantities", "meaning_zh": "价格与数量听辨"}
+      ],
+      "objectives": [
+        {"objective_id": "A1-O007", "mode": "interaction", "can_do_zh": "在未排练的点单或购物场景中请求物品并询价。", "target_knowledge_ids": ["A1-K013", "A1-K014", "A1-K015"], "evidence_requirement": "independent_unrehearsed_role_play"},
+        {"objective_id": "A1-O008", "mode": "listening", "can_do_zh": "听懂三个价格或数量并作出正确选择。", "target_knowledge_ids": ["A1-K016"], "evidence_requirement": "unseen_audio_choice_without_text"}
+      ],
+      "teaching_notes_zh": ["使用虚构价格。", "不可数名词只教高频实例，不做术语讲解。"],
+      "completion_criteria": {"required_objective_ids": ["A1-O007", "A1-O008"], "minimum_independent_passes_per_objective": 1, "mastery_requires_distinct_sessions": 2, "requires_unseen_listening_check": true, "repeat_after_model_counts_as_independent": false, "transcript_only_pronunciation_scoring_allowed": false}
+    },
+    {
+      "unit_id": "A1-U05", "order": 5, "title_zh": "能力与简单请求", "title_en": "Abilities and Requests",
+      "prerequisite_units": ["A1-U04"],
+      "prerequisite_knowledge_ids": ["A1-K015", "PRE_A1-K029"],
+      "knowledge": [
+        {"knowledge_id": "A1-K017", "type": "grammar", "form": "can / can't + base verb", "meaning_zh": "表达能力"},
+        {"knowledge_id": "A1-K018", "type": "chunk", "form": "Can you ___, please?", "meaning_zh": "提出简单请求"},
+        {"knowledge_id": "A1-K019", "type": "chunk", "form": "Sure. / Sorry, I can't.", "meaning_zh": "接受或拒绝请求"},
+        {"knowledge_id": "A1-K020", "type": "pragmatics", "form": "please + friendly tone", "meaning_zh": "基础请求礼貌"}
+      ],
+      "objectives": [
+        {"objective_id": "A1-O009", "mode": "speaking", "can_do_zh": "独立说出两项会做和一项不会做的事情。", "target_knowledge_ids": ["A1-K017"], "evidence_requirement": "independent_short_turn_without_sentence_starter"},
+        {"objective_id": "A1-O010", "mode": "interaction", "can_do_zh": "提出一个请求，并自然接受或拒绝另一个请求。", "target_knowledge_ids": ["A1-K018", "A1-K019", "A1-K020"], "evidence_requirement": "independent_unrehearsed_role_play"}
+      ],
+      "teaching_notes_zh": ["先区分能力与请求两个用途。", "语气只作可懂度和明显礼貌观察，不作精确声学评分。"],
+      "completion_criteria": {"required_objective_ids": ["A1-O009", "A1-O010"], "minimum_independent_passes_per_objective": 1, "mastery_requires_distinct_sessions": 2, "requires_unseen_listening_check": false, "repeat_after_model_counts_as_independent": false, "transcript_only_pronunciation_scoring_allowed": false}
+    },
+    {
+      "unit_id": "A1-U06", "order": 6, "title_zh": "现在正在发生什么", "title_en": "What Is Happening Now",
+      "prerequisite_units": ["A1-U05"],
+      "prerequisite_knowledge_ids": ["A1-K001", "A1-K005", "A1-K017"],
+      "knowledge": [
+        {"knowledge_id": "A1-K021", "type": "grammar", "form": "be + verb-ing", "meaning_zh": "现在进行时"},
+        {"knowledge_id": "A1-K022", "type": "grammar", "form": "present simple vs present continuous", "meaning_zh": "习惯与此刻的区别"},
+        {"knowledge_id": "A1-K023", "type": "vocabulary", "form": "reading / waiting / cooking / wearing / talking", "meaning_zh": "高频动作"},
+        {"knowledge_id": "A1-K024", "type": "chunk", "form": "What are you doing?", "meaning_zh": "询问当前动作"}
+      ],
+      "objectives": [
+        {"objective_id": "A1-O011", "mode": "speaking", "can_do_zh": "根据新图片独立描述两项正在发生的动作。", "target_knowledge_ids": ["A1-K021", "A1-K023"], "evidence_requirement": "independent_response_to_unseen_visual"},
+        {"objective_id": "A1-O012", "mode": "listening", "can_do_zh": "听句子判断是在说习惯还是此刻。", "target_knowledge_ids": ["A1-K022", "A1-K024"], "evidence_requirement": "unseen_audio_choice_without_text"}
+      ],
+      "teaching_notes_zh": ["使用动作明显的场景。", "先保持主语为 I/you/he/she，不扩展复杂规则。"],
+      "completion_criteria": {"required_objective_ids": ["A1-O011", "A1-O012"], "minimum_independent_passes_per_objective": 1, "mastery_requires_distinct_sessions": 2, "requires_unseen_listening_check": true, "repeat_after_model_counts_as_independent": false, "transcript_only_pronunciation_scoring_allowed": false}
+    },
+    {
+      "unit_id": "A1-U07", "order": 7, "title_zh": "昨天和上周", "title_en": "Yesterday and Last Week",
+      "prerequisite_units": ["A1-U06"],
+      "prerequisite_knowledge_ids": ["A1-K005", "A1-K006", "A1-K023"],
+      "knowledge": [
+        {"knowledge_id": "A1-K025", "type": "grammar", "form": "past simple: was/were and common verbs", "meaning_zh": "一般过去时基础"},
+        {"knowledge_id": "A1-K026", "type": "vocabulary", "form": "yesterday / last night / last weekend", "meaning_zh": "过去时间表达"},
+        {"knowledge_id": "A1-K027", "type": "grammar", "form": "Did you ___?", "meaning_zh": "过去时一般疑问句"},
+        {"knowledge_id": "A1-K028", "type": "interaction", "form": "answer + one detail", "meaning_zh": "回答并补充一个细节"}
+      ],
+      "objectives": [
+        {"objective_id": "A1-O013", "mode": "speaking", "can_do_zh": "独立用三句说昨天或上周的一件事。", "target_knowledge_ids": ["A1-K025", "A1-K026", "A1-K028"], "evidence_requirement": "independent_short_turn_without_sentence_starter"},
+        {"objective_id": "A1-O014", "mode": "interaction", "can_do_zh": "提出并回答两个简单过去时问题。", "target_knowledge_ids": ["A1-K025", "A1-K027"], "evidence_requirement": "unrehearsed_question_answer_exchange"}
+      ],
+      "teaching_notes_zh": ["动词限制在本单元给出的高频清单。", "不要求完整长叙事。"],
+      "completion_criteria": {"required_objective_ids": ["A1-O013", "A1-O014"], "minimum_independent_passes_per_objective": 1, "mastery_requires_distinct_sessions": 2, "requires_unseen_listening_check": false, "repeat_after_model_counts_as_independent": false, "transcript_only_pronunciation_scoring_allowed": false}
+    },
+    {
+      "unit_id": "A1-U08", "order": 8, "title_zh": "周末计划与 A1 综合检验", "title_en": "Plans and A1 Check",
+      "prerequisite_units": ["A1-U07"],
+      "prerequisite_knowledge_ids": ["A1-K005", "A1-K025", "A1-K028"],
+      "knowledge": [
+        {"knowledge_id": "A1-K029", "type": "grammar", "form": "be going to + base verb", "meaning_zh": "表达计划"},
+        {"knowledge_id": "A1-K030", "type": "chunk", "form": "What are you going to do?", "meaning_zh": "询问计划"},
+        {"knowledge_id": "A1-K031", "type": "vocabulary", "form": "tomorrow / this weekend / next week", "meaning_zh": "未来时间表达"},
+        {"knowledge_id": "A1-K032", "type": "interaction", "form": "past → present → future", "meaning_zh": "按时间组织简短交流"}
+      ],
+      "objectives": [
+        {"objective_id": "A1-O015", "mode": "interaction", "can_do_zh": "独立询问并说明一个真实或虚构的周末计划。", "target_knowledge_ids": ["A1-K029", "A1-K030", "A1-K031"], "evidence_requirement": "independent_unrehearsed_role_play"},
+        {"objective_id": "A1-O016", "mode": "speaking", "can_do_zh": "在未排练任务中用简单句依次谈昨天、今天和明天。", "target_knowledge_ids": ["A1-K032", "A1-K025", "A1-K029"], "evidence_requirement": "independent_integrated_level_check"},
+        {"objective_id": "A1-O017", "mode": "listening", "can_do_zh": "听懂一个只含 A1 已学语言的新日程，提取过去、现在和计划各一项信息。", "target_knowledge_ids": ["A1-K008", "A1-K016", "A1-K032"], "evidence_requirement": "unseen_audio_questions_without_text"}
+      ],
+      "teaching_notes_zh": ["综合检验只使用本级已学语言。", "可用中文解释任务，但独立检验不得提供目标句型。"],
+      "completion_criteria": {"required_objective_ids": ["A1-O015", "A1-O016", "A1-O017"], "minimum_independent_passes_per_objective": 1, "mastery_requires_distinct_sessions": 2, "requires_unseen_listening_check": true, "repeat_after_model_counts_as_independent": false, "transcript_only_pronunciation_scoring_allowed": false}
+    }
+  ]
+}

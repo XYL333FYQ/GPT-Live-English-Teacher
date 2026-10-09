@@ -1,0 +1,245 @@
+{
+  "schema_version": "1.0",
+  "curriculum_id": "gpt-live-english-foundations",
+  "curriculum_version": "1.0.0",
+  "level_id": "PRE_A1",
+  "level_order": 0,
+  "title_zh": "Pre-A1 零起点生存英语",
+  "entry_standard_zh": "不要求已有英语知识；可以用中文回答需求与困难。",
+  "exit_standard_zh": "能在熟悉且高度可预测的场景中听懂极短指令，并用已学短句完成基本互动。",
+  "support_policy": {
+    "chinese_support": "default_on",
+    "english_input_percent_start": 20,
+    "english_input_percent_end": 45,
+    "teacher_turn_max_words": 10,
+    "new_knowledge_per_lesson_max": 5
+  },
+  "lesson_flow": [
+    "course_goal",
+    "demonstration",
+    "repeat_after_model",
+    "guided_practice",
+    "independent_expression",
+    "check",
+    "review"
+  ],
+  "units": [
+    {
+      "unit_id": "PRE_A1-U01",
+      "order": 1,
+      "title_zh": "听懂课堂并求助",
+      "title_en": "Classroom Survival",
+      "prerequisite_units": [],
+      "prerequisite_knowledge_ids": [],
+      "knowledge": [
+        {"knowledge_id": "PRE_A1-K001", "type": "chunk", "form": "Yes. / No.", "meaning_zh": "是／不是"},
+        {"knowledge_id": "PRE_A1-K002", "type": "chunk", "form": "I don't understand.", "meaning_zh": "我不明白"},
+        {"knowledge_id": "PRE_A1-K003", "type": "chunk", "form": "Please say it again.", "meaning_zh": "请再说一遍"},
+        {"knowledge_id": "PRE_A1-K004", "type": "listening", "form": "listen / say / choose / again", "meaning_zh": "四个课堂指令词"}
+      ],
+      "objectives": [
+        {"objective_id": "PRE_A1-O001", "mode": "listening", "can_do_zh": "在无文字答案时听懂一个已学的单步指令，并用动作或 yes/no 作出回应。", "target_knowledge_ids": ["PRE_A1-K001", "PRE_A1-K004"], "evidence_requirement": "unseen_audio_choice_without_text"},
+        {"objective_id": "PRE_A1-O002", "mode": "interaction", "can_do_zh": "听不懂时主动说出一个求助短句。", "target_knowledge_ids": ["PRE_A1-K002", "PRE_A1-K003"], "evidence_requirement": "independent_response_without_revealing_prompt"}
+      ],
+      "teaching_notes_zh": ["先用中文说明每个课堂动作。", "一次只说一个英文指令，等待反应。", "学习者可随时用中文求助。"],
+      "completion_criteria": {
+        "required_objective_ids": ["PRE_A1-O001", "PRE_A1-O002"],
+        "minimum_independent_passes_per_objective": 1,
+        "mastery_requires_distinct_sessions": 2,
+        "requires_unseen_listening_check": true,
+        "repeat_after_model_counts_as_independent": false,
+        "transcript_only_pronunciation_scoring_allowed": false
+      }
+    },
+    {
+      "unit_id": "PRE_A1-U02",
+      "order": 2,
+      "title_zh": "打招呼和姓名",
+      "title_en": "Hello and Names",
+      "prerequisite_units": ["PRE_A1-U01"],
+      "prerequisite_knowledge_ids": ["PRE_A1-K002", "PRE_A1-K003"],
+      "knowledge": [
+        {"knowledge_id": "PRE_A1-K005", "type": "chunk", "form": "Hello. / Hi. / Goodbye.", "meaning_zh": "你好／再见"},
+        {"knowledge_id": "PRE_A1-K006", "type": "chunk", "form": "My name is ___.", "meaning_zh": "我叫……"},
+        {"knowledge_id": "PRE_A1-K007", "type": "chunk", "form": "What's your name?", "meaning_zh": "你叫什么名字？"},
+        {"knowledge_id": "PRE_A1-K008", "type": "grammar", "form": "I / you + am / are", "meaning_zh": "最基础的人称与 be 动词"}
+      ],
+      "objectives": [
+        {"objective_id": "PRE_A1-O003", "mode": "interaction", "can_do_zh": "独立完成问候、用 I am / you are 说出或确认姓名并告别。", "target_knowledge_ids": ["PRE_A1-K005", "PRE_A1-K006", "PRE_A1-K008"], "evidence_requirement": "independent_role_play_without_sentence_starter"},
+        {"objective_id": "PRE_A1-O004", "mode": "listening", "can_do_zh": "从两个陌生姓名中听辨对方说出的姓名。", "target_knowledge_ids": ["PRE_A1-K007"], "evidence_requirement": "unseen_audio_choice_without_text"}
+      ],
+      "teaching_notes_zh": ["中文先说明问答轮次。", "姓名可使用学习者真实姓名。", "跟读后必须换角色重新开始，才进入独立表达。"],
+      "completion_criteria": {
+        "required_objective_ids": ["PRE_A1-O003", "PRE_A1-O004"],
+        "minimum_independent_passes_per_objective": 1,
+        "mastery_requires_distinct_sessions": 2,
+        "requires_unseen_listening_check": true,
+        "repeat_after_model_counts_as_independent": false,
+        "transcript_only_pronunciation_scoring_allowed": false
+      }
+    },
+    {
+      "unit_id": "PRE_A1-U03",
+      "order": 3,
+      "title_zh": "字母和拼写姓名",
+      "title_en": "Letters and Spelling",
+      "prerequisite_units": ["PRE_A1-U02"],
+      "prerequisite_knowledge_ids": ["PRE_A1-K006", "PRE_A1-K007"],
+      "knowledge": [
+        {"knowledge_id": "PRE_A1-K009", "type": "vocabulary", "form": "A-Z letter names", "meaning_zh": "英文字母名称"},
+        {"knowledge_id": "PRE_A1-K010", "type": "chunk", "form": "How do you spell it?", "meaning_zh": "怎么拼写？"},
+        {"knowledge_id": "PRE_A1-K011", "type": "chunk", "form": "It's ___.", "meaning_zh": "它是……"},
+        {"knowledge_id": "PRE_A1-K012", "type": "pronunciation", "form": "confusable letter names", "meaning_zh": "易混字母名称的可懂度"}
+      ],
+      "objectives": [
+        {"objective_id": "PRE_A1-O005", "mode": "interaction", "can_do_zh": "独立询问拼写，并在不看示范时拼出自己的姓名或一个已学单词。", "target_knowledge_ids": ["PRE_A1-K009", "PRE_A1-K010", "PRE_A1-K011"], "evidence_requirement": "independent_response_without_revealing_prompt"},
+        {"objective_id": "PRE_A1-O006", "mode": "listening", "can_do_zh": "听辨三组与本人相关的字母序列。", "target_knowledge_ids": ["PRE_A1-K009", "PRE_A1-K012"], "evidence_requirement": "unseen_audio_choice_without_text"}
+      ],
+      "teaching_notes_zh": ["只选学习者姓名所需字母和少量易混字母。", "语音观察只记录是否可懂及混淆现象，不给精确音素分数。"],
+      "completion_criteria": {
+        "required_objective_ids": ["PRE_A1-O005", "PRE_A1-O006"],
+        "minimum_independent_passes_per_objective": 1,
+        "mastery_requires_distinct_sessions": 2,
+        "requires_unseen_listening_check": true,
+        "repeat_after_model_counts_as_independent": false,
+        "transcript_only_pronunciation_scoring_allowed": false
+      }
+    },
+    {
+      "unit_id": "PRE_A1-U04",
+      "order": 4,
+      "title_zh": "数字和个人信息",
+      "title_en": "Numbers and Personal Details",
+      "prerequisite_units": ["PRE_A1-U03"],
+      "prerequisite_knowledge_ids": ["PRE_A1-K009", "PRE_A1-K011"],
+      "knowledge": [
+        {"knowledge_id": "PRE_A1-K013", "type": "vocabulary", "form": "numbers 0-20", "meaning_zh": "数字 0–20"},
+        {"knowledge_id": "PRE_A1-K014", "type": "chunk", "form": "I'm ___ years old.", "meaning_zh": "我……岁"},
+        {"knowledge_id": "PRE_A1-K015", "type": "chunk", "form": "My number is ___.", "meaning_zh": "我的号码是……"},
+        {"knowledge_id": "PRE_A1-K016", "type": "listening", "form": "number strings", "meaning_zh": "连续数字听辨"}
+      ],
+      "objectives": [
+        {"objective_id": "PRE_A1-O007", "mode": "speaking", "can_do_zh": "独立说出年龄或一串与自己有关的数字。", "target_knowledge_ids": ["PRE_A1-K013", "PRE_A1-K014", "PRE_A1-K015"], "evidence_requirement": "independent_response_without_revealing_prompt"},
+        {"objective_id": "PRE_A1-O008", "mode": "listening", "can_do_zh": "听辨四个未按教学顺序出现的数字。", "target_knowledge_ids": ["PRE_A1-K013", "PRE_A1-K016"], "evidence_requirement": "unseen_audio_choice_without_text"}
+      ],
+      "teaching_notes_zh": ["先练 0–10，再按需要扩展到 20。", "不得要求提供真实电话号码，可使用虚构号码。"],
+      "completion_criteria": {
+        "required_objective_ids": ["PRE_A1-O007", "PRE_A1-O008"],
+        "minimum_independent_passes_per_objective": 1,
+        "mastery_requires_distinct_sessions": 2,
+        "requires_unseen_listening_check": true,
+        "repeat_after_model_counts_as_independent": false,
+        "transcript_only_pronunciation_scoring_allowed": false
+      }
+    },
+    {
+      "unit_id": "PRE_A1-U05",
+      "order": 5,
+      "title_zh": "身边的人和物",
+      "title_en": "People and Things",
+      "prerequisite_units": ["PRE_A1-U04"],
+      "prerequisite_knowledge_ids": ["PRE_A1-K008", "PRE_A1-K013"],
+      "knowledge": [
+        {"knowledge_id": "PRE_A1-K017", "type": "grammar", "form": "This is ___. / That's ___.", "meaning_zh": "介绍近处／远处的人或物"},
+        {"knowledge_id": "PRE_A1-K018", "type": "vocabulary", "form": "person / book / phone / bag / cup", "meaning_zh": "常见人和物"},
+        {"knowledge_id": "PRE_A1-K019", "type": "vocabulary", "form": "red / blue / black / white", "meaning_zh": "基础颜色"},
+        {"knowledge_id": "PRE_A1-K020", "type": "chunk", "form": "What is this?", "meaning_zh": "这是什么？"}
+      ],
+      "objectives": [
+        {"objective_id": "PRE_A1-O009", "mode": "interaction", "can_do_zh": "独立询问并指认两个身边物品，可加一个颜色。", "target_knowledge_ids": ["PRE_A1-K017", "PRE_A1-K018", "PRE_A1-K019", "PRE_A1-K020"], "evidence_requirement": "independent_response_to_new_object"},
+        {"objective_id": "PRE_A1-O010", "mode": "listening", "can_do_zh": "听懂对两个物品的简短指认。", "target_knowledge_ids": ["PRE_A1-K017", "PRE_A1-K018"], "evidence_requirement": "unseen_audio_choice_without_text"}
+      ],
+      "teaching_notes_zh": ["优先使用学习者看得到的实物。", "不引入复数规则或复杂描述。"],
+      "completion_criteria": {
+        "required_objective_ids": ["PRE_A1-O009", "PRE_A1-O010"],
+        "minimum_independent_passes_per_objective": 1,
+        "mastery_requires_distinct_sessions": 2,
+        "requires_unseen_listening_check": true,
+        "repeat_after_model_counts_as_independent": false,
+        "transcript_only_pronunciation_scoring_allowed": false
+      }
+    },
+    {
+      "unit_id": "PRE_A1-U06",
+      "order": 6,
+      "title_zh": "喜欢、想要与礼貌请求",
+      "title_en": "Likes, Wants, and Please",
+      "prerequisite_units": ["PRE_A1-U05"],
+      "prerequisite_knowledge_ids": ["PRE_A1-K001", "PRE_A1-K018"],
+      "knowledge": [
+        {"knowledge_id": "PRE_A1-K021", "type": "chunk", "form": "I like ___. / I don't like ___.", "meaning_zh": "我喜欢／不喜欢……"},
+        {"knowledge_id": "PRE_A1-K022", "type": "chunk", "form": "I want ___, please.", "meaning_zh": "我想要……，谢谢"},
+        {"knowledge_id": "PRE_A1-K023", "type": "vocabulary", "form": "water / tea / coffee / rice / bread", "meaning_zh": "基础饮食词"},
+        {"knowledge_id": "PRE_A1-K024", "type": "pragmatics", "form": "please / thank you", "meaning_zh": "基础礼貌表达"}
+      ],
+      "objectives": [
+        {"objective_id": "PRE_A1-O011", "mode": "interaction", "can_do_zh": "在新的二选一情境中独立表达喜欢或不喜欢。", "target_knowledge_ids": ["PRE_A1-K021", "PRE_A1-K023"], "evidence_requirement": "independent_choice_without_sentence_starter"},
+        {"objective_id": "PRE_A1-O012", "mode": "interaction", "can_do_zh": "在简单点单中独立提出一个礼貌请求。", "target_knowledge_ids": ["PRE_A1-K022", "PRE_A1-K024"], "evidence_requirement": "independent_role_play_without_sentence_starter"}
+      ],
+      "teaching_notes_zh": ["先给图片或中文选项，再移除句型提示。", "只要求一个请求，不追加数量和价格。"],
+      "completion_criteria": {
+        "required_objective_ids": ["PRE_A1-O011", "PRE_A1-O012"],
+        "minimum_independent_passes_per_objective": 1,
+        "mastery_requires_distinct_sessions": 2,
+        "requires_unseen_listening_check": false,
+        "repeat_after_model_counts_as_independent": false,
+        "transcript_only_pronunciation_scoring_allowed": false
+      }
+    },
+    {
+      "unit_id": "PRE_A1-U07",
+      "order": 7,
+      "title_zh": "位置和寻找物品",
+      "title_en": "Where Is It?",
+      "prerequisite_units": ["PRE_A1-U06"],
+      "prerequisite_knowledge_ids": ["PRE_A1-K017", "PRE_A1-K018", "PRE_A1-K020"],
+      "knowledge": [
+        {"knowledge_id": "PRE_A1-K025", "type": "chunk", "form": "Where is the ___?", "meaning_zh": "……在哪里？"},
+        {"knowledge_id": "PRE_A1-K026", "type": "chunk", "form": "It's here. / It's there.", "meaning_zh": "在这里／那里"},
+        {"knowledge_id": "PRE_A1-K027", "type": "grammar", "form": "in / on", "meaning_zh": "在……里面／上面"},
+        {"knowledge_id": "PRE_A1-K028", "type": "listening", "form": "short location instructions", "meaning_zh": "极短位置说明"}
+      ],
+      "objectives": [
+        {"objective_id": "PRE_A1-O013", "mode": "interaction", "can_do_zh": "独立询问一个物品的位置并理解短答。", "target_knowledge_ids": ["PRE_A1-K025", "PRE_A1-K026"], "evidence_requirement": "independent_role_play_without_sentence_starter"},
+        {"objective_id": "PRE_A1-O014", "mode": "listening", "can_do_zh": "听懂物品在里面或上面的区别。", "target_knowledge_ids": ["PRE_A1-K027", "PRE_A1-K028"], "evidence_requirement": "unseen_audio_choice_without_text"}
+      ],
+      "teaching_notes_zh": ["用两个真实或想象中的位置形成最小对比。", "暂不引入完整地点介词系统。"],
+      "completion_criteria": {
+        "required_objective_ids": ["PRE_A1-O013", "PRE_A1-O014"],
+        "minimum_independent_passes_per_objective": 1,
+        "mastery_requires_distinct_sessions": 2,
+        "requires_unseen_listening_check": true,
+        "repeat_after_model_counts_as_independent": false,
+        "transcript_only_pronunciation_scoring_allowed": false
+      }
+    },
+    {
+      "unit_id": "PRE_A1-U08",
+      "order": 8,
+      "title_zh": "我的一天与综合生存对话",
+      "title_en": "My Day and Survival Check",
+      "prerequisite_units": ["PRE_A1-U07"],
+      "prerequisite_knowledge_ids": ["PRE_A1-K013", "PRE_A1-K021", "PRE_A1-K025"],
+      "knowledge": [
+        {"knowledge_id": "PRE_A1-K029", "type": "vocabulary", "form": "get up / eat / go / work / study / sleep", "meaning_zh": "基础日常动作"},
+        {"knowledge_id": "PRE_A1-K030", "type": "grammar", "form": "I + base verb.", "meaning_zh": "用最短句说日常动作"},
+        {"knowledge_id": "PRE_A1-K031", "type": "chunk", "form": "every day / in the morning / at night", "meaning_zh": "基础时间表达"},
+        {"knowledge_id": "PRE_A1-K032", "type": "interaction", "form": "greet → answer → ask for help → close", "meaning_zh": "四步生存对话结构"}
+      ],
+      "objectives": [
+        {"objective_id": "PRE_A1-O015", "mode": "speaking", "can_do_zh": "不用句首提示，说出两个真实日常动作。", "target_knowledge_ids": ["PRE_A1-K029", "PRE_A1-K030", "PRE_A1-K031"], "evidence_requirement": "independent_response_without_revealing_prompt"},
+        {"objective_id": "PRE_A1-O016", "mode": "interaction", "can_do_zh": "在一个未排练的简单场景中完成问候、回应、求助和结束。", "target_knowledge_ids": ["PRE_A1-K032", "PRE_A1-K002", "PRE_A1-K005", "PRE_A1-K024"], "evidence_requirement": "independent_unrehearsed_role_play"},
+        {"objective_id": "PRE_A1-O017", "mode": "listening", "can_do_zh": "听懂一个只含本级已学语言的新短对话，并选出人物需求。", "target_knowledge_ids": ["PRE_A1-K004", "PRE_A1-K016", "PRE_A1-K028"], "evidence_requirement": "unseen_audio_choice_without_text"}
+      ],
+      "teaching_notes_zh": ["综合任务只调用本级已学语言。", "中文可用于说明场景，但检验阶段不提供目标英文。"],
+      "completion_criteria": {
+        "required_objective_ids": ["PRE_A1-O015", "PRE_A1-O016", "PRE_A1-O017"],
+        "minimum_independent_passes_per_objective": 1,
+        "mastery_requires_distinct_sessions": 2,
+        "requires_unseen_listening_check": true,
+        "repeat_after_model_counts_as_independent": false,
+        "transcript_only_pronunciation_scoring_allowed": false
+      }
+    }
+  ]
+}

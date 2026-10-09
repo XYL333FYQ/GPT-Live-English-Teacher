@@ -1,183 +1,147 @@
 # GPT Live English Coach
 
 <p align="center">
-  <a href="README.md">English</a> ·
-  <a href="README.zh-CN.md">简体中文</a>
+  <a href="README.md">English</a> · <a href="README.zh-CN.md">简体中文</a>
 </p>
 
 <p align="center">
-  <img alt="GPT-Live" src="https://img.shields.io/badge/Built%20for-GPT--Live-10a37f">
-  <img alt="ChatGPT Voice" src="https://img.shields.io/badge/ChatGPT-Voice-111827">
-  <img alt="AI English Tutor" src="https://img.shields.io/badge/AI-English%20Tutor-2f6fed">
-  <img alt="Portable Memory" src="https://img.shields.io/badge/Memory-Portable%20JSON-4b79ff">
-  <img alt="License" src="https://img.shields.io/badge/License-CC%20BY%204.0%20%2B%20MIT-b8c0cc">
+  <strong>面向英语 Pre-A1 零基础学习者的 ChatGPT Project + GPT Live 个人 AI 外教。</strong>
 </p>
 
-<h3 align="center">为 GPT‑Live 而生的英语课程。</h3>
+本项目不开发独立应用或后端。它由可上传到 ChatGPT Project 的教学指令、课程 JSON、学习档案 schema，以及用于仓库校验的轻量 Python 脚本组成。
 
-<p align="center">
-  <strong>一个运行在 ChatGPT Voice 里的开源 AI 英语教练。</strong><br>
-  挂载两个文件，走进 Live：从真实生活开口，在最需要的时候得到纠正，进入新鲜的现实话题与辩论，最后带着一份记得下一步该练什么的学习档案离开。
-</p>
+## 这一版解决什么
 
-<p align="center">
-  <sub>全双工口语 · 联网新话题 · 实时纠正 · 间隔复习 · 无需安装应用</sub>
-</p>
+原项目已经具备 GPT Live 语音课堂、即时纠错、间隔复习和 JSON 档案导出流程，但默认任务偏向中高级学习者。v3.0 在保留这些机制的基础上增加：
 
-<p align="center">
-  <a href="https://github.com/loiqy/GPT-Live-English-Coach/raw/refs/heads/main/English_Learning_Instructions.md">
-    <img
-      src="https://img.shields.io/badge/下载-最新版%20Instruction-2ea44f?style=for-the-badge&logo=github"
-      alt="下载最新版 Instruction"
-    >
-  </a>
-  &nbsp;
-  <a href="https://github.com/loiqy/GPT-Live-English-Coach/releases/latest">
-    <img
-      src="https://img.shields.io/badge/查看-最新稳定版本-2563eb?style=for-the-badge&logo=github"
-      alt="查看最新稳定版本"
-    >
-  </a>
-</p>
-
-<p align="center">
-  <img src="assets/hero-collage.png" width="100%" alt="GPT Live English Coach：面向 ChatGPT Voice 的开源 AI 英语教练与口语陪练方案">
-</p>
-
-## 语音终于成为一块真正的学习界面
-
-OpenAI 表示，每周已有**超过 1.5 亿人**使用 Voice、Dictation 等语音功能。GPT‑Live 带来了全双工对话、更懂停顿的倾听、更自然的插话与打断，以及在对话继续流动时委托搜索和深度推理的能力。口语练习由此拥有了真实交流所需要的节奏、压力与临场感。[查看 GPT‑Live 官方介绍](https://openai.com/index/introducing-gpt-live/)。
-
-**GPT Live English Coach 为这套新界面装上课程、记忆和教练人格。**
-
-- **从生活里开口。** 酒店、咖啡馆、旅行、small talk、澄清、礼貌与日常社交，先让英语真正用起来。
-- **在关键时刻被点醒。** 教练会捕捉不自然表达、中式英语、语域、语用与值得带走的 lexical chunks。
-- **把谈话推向现实世界。** 每节课都可以自然进入一个经过网页搜索确认的新鲜话题与更深入的辩论。
-- **让进步延续到下一次。** 一个可携带的 JSON 档案保存表达盲点、复习项目、课程历史与下一步训练方向。
-
-## GPT‑Live 为这套课程带来的新空间
-
-传统语音陪练通常依次完成语音转文字、模型回答、文字转语音。GPT‑Live 在 ChatGPT Voice 中持续处理交互，让学习者可以停顿、插话、边想边说，并维持同一条自然流动的对话。它还可以在同一个聊天中调用网页搜索、记忆、文本、图片与可视化结果。这让一份 instruction 也能承载接近完整口语课程的体验。
-
-## 用户实际只需要什么
-
-你真正需要使用的，只有两个文件：
-
-1. `English_Learning_Instructions.md`
-2. 你最新的 `English_Learning_Profile.json`
-
-这就是完整的用户侧工作流。
-
-## 工作流程
-
-<p align="center">
-  <img src="assets/how-it-works.png" width="100%" alt="GPT Live English Coach 工作流程图">
-</p>
+- `PRE_A1 → A1 → A2 → B1` 四级、32 个有序单元；
+- 每单元明确知识前置、Can-Do 目标、语言范围和完成标准；
+- 固定教学流程：**课程目标 → 示范 → 跟读 → 引导练习 → 独立表达 → 检验 → 复习**；
+- Pre-A1 默认中文解释，并从约 20% 英语输入逐步提升；
+- 档案记录当前位置、知识状态、听说/发音薄弱项和实际练习证据；
+- 跟读与独立掌握严格分离；
+- 禁止根据语音转写文本给出精确发音评分；
+- v2.1 档案无损迁移、非覆盖导出和自动化校验。
 
 ## 快速开始
 
-### 第一节课
+### 1. 创建 ChatGPT Project
 
-1. 下载 `English_Learning_Instructions.md`。
-2. 在 ChatGPT 中新开一个对话。
-3. 挂载 instruction 文件。
-4. 发送：`Start my first class.`
-5. 跟随初始化与分级流程。
-6. 课程结束后回到文本模式，发送：`Test finished`。
-7. 下载生成的 `English_Learning_Profile.json`。
+将这些静态文件加入同一个 Project：
 
-> 第一节课无需准备 profile 文件；完成初始测评后，ChatGPT 会生成属于你的个人学习档案。
+- `English_Learning_Instructions.md`
+- `curriculum/PRE_A1.json`
+- `curriculum/A1.json`
+- `curriculum/A2.json`
+- `curriculum/B1.json`
+- `schemas/learning-profile.schema.json`
 
-### 后续每一节课
+课程文件长期保留在 Project 中，不需要每节课重复上传。
 
-1. 在 ChatGPT 中新开一个对话。
-2. 挂载：
-   - `English_Learning_Instructions.md`
-   - 你最新的 `English_Learning_Profile.json`
-3. 发送：`Prepare for class`。
-4. 阅读起飞前 briefing。
-5. 进入 GPT Live 开始说话。
-6. 结束后回到文本模式，发送：`Class is over, export data.`
-7. 下载更新后的 profile JSON，用于下一节课。
+### 2. 第一节课
 
-## 一节课的体验
+1. 在 Project 中新建对话。
+2. 发送：`Start my first class.`
+3. 按提示进入 GPT Live；零基础可以全程要求中文解释。
+4. 回到文本模式，发送：`Test finished`。
+5. 下载生成的 `English_Learning_Profile.json`。
 
-### 开场
+分级从最低需求开始，不会直接要求零基础学习者讲个人故事或讨论抽象观点。
 
-挂载两个文件，发送 `Prepare for class`，你会获得一份为当日课程量身整理的起飞前说明。
+### 3. 后续课程
 
-### 上课
+1. 在 Project 对话中上传最新的 profile JSON。
+2. 发送：`Prepare for class`。
+3. 确认课程目标后进入 GPT Live。
+4. 结束时回到文本模式，发送：`Class is over, export data.`
+5. 下载新文件 `English_Learning_Profile_updated_YYYY-MM-DD.json`。
 
-课程先从一个日常说话场景开始，把表达带热，再一步步推进到更深入的对话。
+源文件不会被覆盖；重名时自动使用 `_2`、`_3` 等后缀。
 
-### 收束
+## 课程阶段
 
-课程结束时，你会收到简洁反馈、一次同步整理，以及一个更新后的 profile 文件。
+| 阶段 | 重点 | 中文支持 | 英语输入目标 |
+|---|---|---|---:|
+| Pre-A1 | 课堂求助、姓名、字母、数字、基本需求与生存对话 | 默认开启 | 20% → 45% |
+| A1 | 个人信息、日常、地点、购物、过去与计划 | 遇阻或请求时 | 45% → 70% |
+| A2 | 短叙事、比较、经历、建议、服务问题与观点 | 简短按需 | 70% → 85% |
+| B1 | 连贯叙事、因果、证据、协商、语域与现实议题 | 仅关键概念 | 85% → 95% |
 
-## 示例对话
+下一个单元只有在前置单元已完成或经未见综合分级检验明确记入 `placement_credited_unit_ids`，且前置知识达到 `independent` / `mastered` / `placement_credited` 后解锁。分级不能伪造普通课程完成记录，也不能用跟读代替分级证据。
 
-**Learner:** I very agree with that, because—
+课程结构借鉴 [FreeLingo](https://github.com/artcc/freelingo) 的有序 CEFR 单元、前置关系、能力清单和完整性测试思路；本仓库的课程文本、证据规则和 ChatGPT Live 工作流为独立实现，没有移植其后端、数据库、XP 或动态出题系统。
 
-**Coach:** Tiny fix: **I completely agree with that.** Say that once.
+## 掌握证据
 
-**Learner:** I completely agree with that.
+知识状态依次为：
 
-**Coach:** Exactly. Now—what makes you so sure?
+`not_started → introduced → supported → independent → mastered`
 
----
+另有 `placement_credited` 表示分级时独立证明。
 
-**Learner:** I felt I was abandoned by the team after I did most of the work.
+- 示范只能形成 `introduced`。
+- 跟读和带答案提示的练习最多形成 `supported`。
+- 新情境、无答案泄露的成功表达才可形成 `independent`。
+- 至少两个不同课次的独立成功，且包含后续检验或复习，才可形成 `mastered`。
 
-**Coach:** That sounds genuinely painful, especially if you had been carrying the project. Here, **I felt let down by the team** is probably the more natural fit; **abandoned** sounds stronger and more absolute. Which hurt more—the lack of help or the lack of recognition?
+发音只记录 GPT Live 中直接听到的定性可懂度现象。只有转写文本时必须标记 `not_assessed`；本版本不提供数字、百分比、音素或声学精确评分。
+
+## 学习档案 v3.0
+
+在原有 `scientific_assessment`、`active_repertoire` 和 `session_log` 基础上新增：
+
+- `learning_track`：课程、版本、阶段和分级依据；
+- `current_course_position`：当前单元、阶段、解锁与完成单元；
+- `knowledge_state`：每个知识点的状态及独立证据；
+- `skill_weaknesses`：听力、口语和发音薄弱项；
+- `practice_evidence`：任务、支持程度、结果、模态、题目是否未见、是否提前显示文字和语音证据来源；
+- `migration_history`：旧档案迁移记录。
+
+v2.1 档案会保留原字段、复习阶段、日期、会话和未知兼容扩展。旧 B2–C2 档案进入 `legacy_conversation` 模式；Pre-A1–B1 档案先做桥接检验，再定位具体单元。
 
 ## 仓库内容
 
-- `English_Learning_Instructions.md` — 主 instruction 文件（当前版本：**v2.2.3**）
-- `assets/hero-collage.png` — README 主视觉图
-- `assets/how-it-works.png` — README 流程海报
-- `assets/social-preview.jpg` — GitHub 社交预览图
-- `tests/test_memory_engine.py` — 复习逻辑与示例数据的轻量测试脚本
+```text
+English_Learning_Instructions.md
+curriculum/
+  PRE_A1.json
+  A1.json
+  A2.json
+  B1.json
+schemas/
+  curriculum.schema.json
+  learning-profile.schema.json
+tools/
+  learning_data.py
+tests/
+  fixtures/
+  test_curriculum.py
+  test_memory_engine.py
+  test_profile.py
+```
 
-## 为什么它很适合移动端
+## 校验
 
-这个项目贴合 ChatGPT Live 的真实使用方式：
+无需安装第三方依赖：
 
-- 挂载文件，
-- 进入 Live，
-- 自然说话，
-- 导出进度。
+```bash
+python tools/learning_data.py validate
+python -m unittest discover -s tests -v
+```
 
-整体体验非常轻，携带成本也很低。
+测试覆盖 JSON Schema 实际执行、课程顺序与引用、七阶段流程、跨级 placement、未见听力证据、v2.1 迁移、确定性复习队列、发音边界以及导出回读。
 
-<details>
-<summary><strong>补充说明</strong></summary>
+## 限制
 
-- 这是英语教练工作流，不是正式 IELTS 测评工具。
-- ChatGPT Live 的行为可能会随着产品更新而演化。
-- 深度讨论阶段会受网页搜索可用性的影响。
-- 语音转写效果会受到设备与环境影响。
+- 这是教学工作流，不是官方 CEFR、IELTS 或发音测评工具。
+- GPT Live、文件工具和语音可用性可能随 ChatGPT 产品变化。
+- 本仓库不存储音频，也不进行声学分析。
+- B1 现实话题受网页搜索可用性影响；Pre-A1/A1 不依赖新闻讨论。
 
-</details>
+## 版本与许可
 
-## 版本信息
-
-- Instruction version: **2.2.3**
-- Profile schema: **2.1**
-- 本次仓库打包日期：**2026-07-11**
-
-## 许可证
-
-- Instruction、文档、profile 模板与图片采用 **CC BY 4.0**，详见 [`LICENSE`](LICENSE)。
-- `tests/` 目录下的文件采用 **MIT License**，详见 [`tests/LICENSE`](tests/LICENSE)。
-
-## 贡献
-
-欢迎提交 issue 或 PR，尤其是：
-
-- 课程体验反馈，
-- 教练人格微调，
-- 复习引擎边界情况，
-- 移动端使用体验，
-- 文档与展示优化。
-
-详见 `CONTRIBUTING.md`。
+- Instruction：**v3.0.0**
+- Profile schema：**3.0**
+- Curriculum：**1.0.0**
+- Instruction、课程、文档、schema 与示例档案采用 `LICENSE` 中的 CC BY 4.0。
+- `tools/` 与 `tests/` 中的 Python 代码采用 `tests/LICENSE` 中的 MIT License。
